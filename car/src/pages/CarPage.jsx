@@ -6,88 +6,23 @@ import { useParams, Link } from 'react-router-dom';
 const ImageGallery = ({ images, tags, id }) => ( <div style={styles.galleryContainer}><div style={styles.mainImageWrapper}><img src={images[0]} style={styles.mainImage} alt="Main car view" /><div style={styles.imageTags}>{tags.map(tag => <span key={tag} style={styles.imageTag}>{tag}</span>)}</div><div style={styles.imageId}>ID: {id}</div><div style={styles.inStockLabel}>В наличии в Китае</div></div><div style={styles.thumbnailGrid}>{images.slice(1, 3).map((img, index) => <img key={index} src={img} style={styles.thumbnail} alt={`Thumbnail ${index + 1}`} />)}<div style={styles.thumbnailOverlay}><span>+915</span></div></div></div> );
 const SpecsTable = ({ specs }) => ( <div style={styles.specsTable}>{Object.entries(specs).map(([key, value]) => ( <div key={key} style={styles.specItem}><div style={styles.specKey}>{key}:</div><div style={styles.specValue}>{value}</div></div>))}</div> );
 const OptionsCarousel = ({ options }) => ( <div style={styles.optionsContainer}><h2 style={styles.sectionTitle}>Опции</h2><div style={styles.optionsCarousel}><button style={styles.carouselArrow}>{"<"}</button>{options.map((opt, i) => (<div key={i} style={styles.optionItem}><img src={opt.icon} style={styles.optionIcon} alt={opt.name} /><div style={styles.optionName}>{opt.name}</div></div>))}<button style={styles.carouselArrow}>{">"}</button></div><div style={styles.buttonsContainer}><button style={styles.redButton}>Сравнить все комплектации</button><button style={styles.whiteButton}>Как проходит сделка?</button></div></div> );
-const Accessories = ({ accessories, model }) => ( <div><h2 style={styles.sectionTitle}>Аксессуары {model}</h2><div style={styles.accessoriesGrid}>{accessories.map(acc => (<div key={acc.name} style={styles.accessoryCard}><img src={acc.img} style={styles.accessoryImage} alt={acc.name} /><h4 style={styles.accessoryName}>{acc.name} - {acc.price.toLocaleString('ru-RU')} ₽</h4><p style={styles.accessoryDesc}>{acc.description}</p></div>))}</div></div> );
-
-
-// ======================= КОМПОНЕНТ ХАРАКТЕРИСТИК (УПРОЩЕННЫЙ) =======================
-
 const Characteristics = ({ characteristics }) => {
     const [activeSection, setActiveSection] = useState(Object.keys(characteristics)[0] || "");
     const sectionRefs = useRef({});
     const containerRef = useRef(null);
     const navRef = useRef(null);
     const [containerHeight, setContainerHeight] = useState('auto');
-
-    useEffect(() => {
-        if (navRef.current) {
-            setContainerHeight(`${navRef.current.offsetHeight}px`);
-        }
-    }, [characteristics]);
-
-    const handleNavClick = (key) => {
-        setActiveSection(key); // Просто устанавливаем активную секцию
-        sectionRefs.current[key]?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    };
-    
-    useEffect(() => {
-        const observerCallback = (entries) => {
-            for (const entry of entries) {
-                if (entry.isIntersecting) {
-                    setActiveSection(entry.target.dataset.sectionKey);
-                    break;
-                }
-            }
-        };
-        const observer = new IntersectionObserver(observerCallback, { 
-            root: containerRef.current,
-            threshold: 0.3,
-            rootMargin: "-40% 0px -60% 0px"
-        });
-
-        const refs = sectionRefs.current;
-        const currentRefs = Object.values(refs);
-        currentRefs.forEach(ref => { if (ref) observer.observe(ref); });
-        return () => { currentRefs.forEach(ref => { if (ref) observer.unobserve(ref); }); };
-    }, [characteristics]);
-
-    return (
-        <div style={styles.charContainer}>
-            <h2 style={styles.sectionTitle}>Характеристики</h2>
-            <div style={styles.charGrid}>
-                <nav style={styles.charTabs} ref={navRef}>
-                    {Object.keys(characteristics).map(key => (
-                        <button 
-                            key={key} 
-                            onClick={() => handleNavClick(key)} 
-                            style={activeSection === key ? styles.activeCharTab : styles.charTab}
-                        >
-                            {key}
-                        </button>
-                    ))}
-                </nav>
-                <div style={{ ...styles.charContent, height: containerHeight }} ref={containerRef}>
-                    {Object.entries(characteristics).map(([key, items], index) => (
-                        <div key={key} ref={el => sectionRefs.current[key] = el} data-section-key={key}>
-                            <h3 style={styles.charCategoryTitle(index === 0)}>{key}</h3>
-                            {items.map(item => (
-                                <div key={item.name} style={styles.charRow}>
-                                    <div style={styles.charName}><span style={styles.infoIcon}>ⓘ</span>{item.name}</div>
-                                    <div style={styles.charValue}>{typeof item.value === 'boolean' ? (item.value ? '●' : '○') : item.value}</div>
-                                </div>
-                            ))}
-                        </div>
-                    ))}
-                </div>
-            </div>
-        </div>
-    );
+    useEffect(() => { if (navRef.current) { setContainerHeight(`${navRef.current.offsetHeight}px`); } }, [characteristics]);
+    const handleNavClick = (key) => { setActiveSection(key); sectionRefs.current[key]?.scrollIntoView({ behavior: 'smooth', block: 'start' }); };
+    useEffect(() => { const observerCallback = (entries) => { for (const entry of entries) { if (entry.isIntersecting) { setActiveSection(entry.target.dataset.sectionKey); break; } } }; const observer = new IntersectionObserver(observerCallback, { root: containerRef.current, threshold: 0.3, rootMargin: "-40% 0px -60% 0px" }); const refs = sectionRefs.current; const currentRefs = Object.values(refs); currentRefs.forEach(ref => { if (ref) observer.observe(ref); }); return () => { currentRefs.forEach(ref => { if (ref) observer.unobserve(ref); }); }; }, [characteristics]);
+    return ( <div style={styles.charContainer}><h2 style={styles.sectionTitle}>Характеристики</h2><div style={styles.charGrid}><nav style={styles.charTabs} ref={navRef}>{Object.keys(characteristics).map(key => (<button key={key} onClick={() => handleNavClick(key)} style={activeSection === key ? styles.activeCharTab : styles.charTab}>{key}</button>))}</nav><div style={{ ...styles.charContent, height: containerHeight }} ref={containerRef}>{Object.entries(characteristics).map(([key, items], index) => (<div key={key} ref={el => sectionRefs.current[key] = el} data-section-key={key}><h3 style={styles.charCategoryTitle(index === 0)}>{key}</h3>{items.map(item => (<div key={item.name} style={styles.charRow}><div style={styles.charName}><span style={styles.infoIcon}>ⓘ</span>{item.name}</div><div style={styles.charValue}>{typeof item.value === 'boolean' ? (item.value ? '●' : '○') : item.value}</div></div>))}</div>))}</div></div></div> );
 };
+const Accessories = ({ accessories, model }) => ( <div><h2 style={styles.sectionTitle}>Аксессуары {model}</h2><div style={styles.accessoriesGrid}>{accessories.map(acc => (<div key={acc.name} style={styles.accessoryCard}><img src={acc.img} style={styles.accessoryImage} alt={acc.name} /><h4 style={styles.accessoryName}>{acc.name} - {acc.price.toLocaleString('ru-RU')} ₽</h4><p style={styles.accessoryDesc}>{acc.description}</p></div>))}</div></div> );
 
-// ======================= ОСНОВНОЙ КОМПОНЕНТ =======================
+// ======================= ОСНОВНОЙ КОМПОНЕНТ-КОНСТРУКТОР =======================
 
 const CarPage = () => {
     const { brandSlug, modelSlug, carId } = useParams();
-    
     const [car, setCar] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
@@ -96,33 +31,33 @@ const CarPage = () => {
         const fetchCarData = async () => {
             setLoading(true);
             setError(null);
-            setCar(null);
             try {
-                // Динамически загружаем модуль с данными об автомобиле
-                const carModule = await import(`../data/cars/${brandSlug}/${modelSlug}/${carId}.js`);
-                setCar(carModule.default); // Используем .default, так как у нас экспорт по умолчанию
+                // ДЕЛАЕМ РЕАЛЬНЫЙ СЕТЕВОЙ ЗАПРОС К БЭКЕНДУ
+                const response = await fetch(`http://localhost:4000/api/car/${carId}`);
+                if (!response.ok) {
+                    throw new Error('Машина не найдена в базе данных');
+                }
+                const data = await response.json();
+                setCar(data);
             } catch (err) {
-                console.error("Failed to load car data:", err);
-                setError(`Не удалось загрузить информацию об автомобиле. Убедитесь, что файл существует по пути: src/data/cars/${brandSlug}/${modelSlug}/${carId}.js`);
+                console.error("Ошибка при загрузке данных о машине:", err);
+                setError("Не удалось загрузить информацию об автомобиле.");
             } finally {
                 setLoading(false);
             }
         };
 
         fetchCarData();
-    }, [brandSlug, modelSlug, carId]); // Эффект перезапускается при смене URL
+    }, [carId]); // Перезагружаем данные, только если ID в URL изменился
 
-    if (loading) {
-        return <div style={{padding: 50, fontFamily: 'sans-serif'}}>Загрузка...</div>;
-    }
+    if (loading) { return <div style={{padding: 50, fontFamily: 'sans-serif'}}>Загрузка...</div>; }
+    if (error) { return <div style={{padding: 50, color: 'red', fontFamily: 'sans-serif'}}>{error}</div>; }
+    if (!car) { return <div style={{padding: 50, fontFamily: 'sans-serif'}}>Автомобиль не найден.</div> }
 
-    if (error) {
-        return <div style={{padding: 50, color: 'red', fontFamily: 'sans-serif'}}>{error}</div>;
-    }
-
-    if (!car) {
-        return <div style={{padding: 50, fontFamily: 'sans-serif'}}>Автомобиль не найден.</div>
-    }
+    // Данные теперь приходят из БД, поэтому priceRussia и priceChina уже есть,
+    // но на всякий случай оставим проверку.
+    const priceRussia = car.price_russia || 0;
+    const priceChina = car.price_china || 0;
 
     return (
         <div style={styles.page}>
@@ -133,27 +68,33 @@ const CarPage = () => {
             </div>
 
             <div style={styles.mainGrid}>
-                <ImageGallery images={car.images} tags={car.tags} id={carId} />
+                <ImageGallery images={car.images || []} tags={car.tags || []} id={carId} />
                 <div style={styles.detailsColumn}>
                     <h1 style={styles.carTitle}>{car.name}</h1>
-                    <SpecsTable specs={car.specs} />
+                    <SpecsTable specs={car.specs || {}} />
                     <div style={{ margin: '20px 0', borderBottom: '1px solid #eee' }}></div>
-                    <div style={styles.colors}><span style={styles.specKey}>Цвет кузова:</span><div style={styles.colorSwatches}>{car.colors.map((color, index) => <div key={index} style={{...styles.colorSwatch, backgroundColor: color}}></div>)}</div></div>
+                    <div style={styles.colors}>
+                        <span style={styles.specKey}>Цвет кузова:</span>
+                        <div style={styles.colorSwatches}>
+                            {(car.colors || []).map((color, index) => <div key={index} style={{...styles.colorSwatch, backgroundColor: color}}></div>)}
+                        </div>
+                    </div>
                     <div style={styles.priceBlock}>
-                        <div style={styles.priceChina}>{car.priceChina.toLocaleString('ru-RU')} ₽ <span style={{color: '#999'}}>Цена в Китае</span></div>
-                        <div style={styles.priceRussia}>~ {car.priceRussia.toLocaleString('ru-RU')} ₽</div>
+                        <div style={styles.priceChina}>{priceChina.toLocaleString('ru-RU')} ₽ <span style={{color: '#999'}}>Цена в Китае</span></div>
+                        <div style={styles.priceRussia}>~ {priceRussia.toLocaleString('ru-RU')} ₽</div>
                     </div>
                     <div style={styles.deliveryInfo}><span style={{color: 'red', marginRight: 5}}>!</span>Доставка, таможенные платежи, СБКТС и ЭПТС включены в стоимость...</div>
                     <button style={styles.orderButton}>Оставить заявку</button>
                 </div>
             </div>
             
-            <OptionsCarousel options={car.options} />
-            <Characteristics characteristics={car.characteristics} />
-            <Accessories accessories={car.accessories} model={car.model} />
+            {car.options && <OptionsCarousel options={car.options} />}
+            {car.characteristics && <Characteristics characteristics={car.characteristics} />}
+            {car.accessories && <Accessories accessories={car.accessories} model={car.model} />}
         </div>
     );
 };
+
 // ======================= СТИЛИ =======================
 
 const styles = {

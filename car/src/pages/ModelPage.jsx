@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { db } from '../data';
 
 // ======================= КОМПОНЕНТ ФИЛЬТРОВ =======================
 const FilterBlock = ({ filters, onFilterChange }) => {
@@ -14,96 +13,41 @@ const FilterBlock = ({ filters, onFilterChange }) => {
 
     return (
         <div style={styles.filterBlock}>
-            {/* Год */}
-            <div style={styles.filterGroup}>
-                <span style={styles.filterTitle}>Год</span>
-                <div style={styles.checkboxWrapper}>
-                    {['2023', '2024', '2025'].map(year => (
-                        <label key={year} style={styles.checkboxLabel}>
-                            <input type="checkbox" checked={(filters.year || []).includes(year)} onChange={() => handleCheckboxChange('year', year)} /> {year}
-                        </label>
-                    ))}
-                </div>
-            </div>
-            {/* Объем */}
-            <div style={styles.filterGroup}>
-                <span style={styles.filterTitle}>Объем, л</span>
-                <div style={styles.checkboxWrapper}>
-                     <label style={styles.checkboxLabel}><input type="checkbox" /> до 1.6</label>
-                </div>
-            </div>
-            {/* Привод */}
-            <div style={styles.filterGroup}>
-                <span style={styles.filterTitle}>Привод</span>
-                <div style={styles.checkboxWrapper}>
-                    <label style={styles.checkboxLabel}><input type="checkbox" /> 4WD</label>
-                </div>
-            </div>
-            {/* Стоимость */}
-            <div style={styles.filterGroup}>
-                <span style={styles.filterTitle}>Стоимость</span>
-                <div style={{...styles.checkboxWrapper, gridTemplateColumns: '1fr 1fr' }}>
-                    <label style={styles.checkboxLabel}><input type="checkbox" /> до 1 млн</label>
-                    <label style={styles.checkboxLabel}><input type="checkbox" /> 1-2 млн</label>
-                    <label style={styles.checkboxLabel}><input type="checkbox" /> 2-3 млн</label>
-                    <label style={styles.checkboxLabel}><input type="checkbox" /> 3-4 млн</label>
-                    <label style={styles.checkboxLabel}><input type="checkbox" /> 4-5 млн</label>
-                    <label style={styles.checkboxLabel}><input type="checkbox" /> 5+ млн</label>
-                </div>
-            </div>
+            <div style={styles.filterGroup}><span style={styles.filterTitle}>Год</span><div style={styles.checkboxWrapper}>{['2023', '2024', '2025'].map(year => (<label key={year} style={styles.checkboxLabel}><input type="checkbox" checked={(filters.year || []).includes(year)} onChange={() => handleCheckboxChange('year', year)} /> {year}</label>))}</div></div>
+            <div style={styles.filterGroup}><span style={styles.filterTitle}>Объем, л</span><div style={styles.checkboxWrapper}><label style={styles.checkboxLabel}><input type="checkbox" /> до 1.6</label></div></div>
+            <div style={styles.filterGroup}><span style={styles.filterTitle}>Привод</span><div style={styles.checkboxWrapper}><label style={styles.checkboxLabel}><input type="checkbox" /> 4WD</label></div></div>
+            <div style={styles.filterGroup}><span style={styles.filterTitle}>Стоимость</span><div style={{...styles.checkboxWrapper, gridTemplateColumns: '1fr 1fr' }}><label style={styles.checkboxLabel}><input type="checkbox" /> до 1 млн</label><label style={styles.checkboxLabel}><input type="checkbox" /> 1-2 млн</label><label style={styles.checkboxLabel}><input type="checkbox" /> 2-3 млн</label><label style={styles.checkboxLabel}><input type="checkbox" /> 3-4 млн</label><label style={styles.checkboxLabel}><input type="checkbox" /> 4-5 млн</label><label style={styles.checkboxLabel}><input type="checkbox" /> 5+ млн</label></div></div>
         </div>
     );
 };
 
 // ======================= КОМПОНЕНТ КАРТОЧКИ АВТО =======================
-const CarCard = ({ car, brandSlug, modelSlug }) => {
-    // Внутренний state для управления наведением на конкретную карточку
+const CarCard = ({ car }) => {
     const [isHovered, setIsHovered] = useState(false);
-
     return (
         <Link 
-            to={`/cars/${brandSlug}/${modelSlug}/${car.id}`} 
+            to={`/cars/${car.brandSlug}/${car.modelSlug}/${car.id}`} 
             style={styles.cardLink}
             onMouseEnter={() => setIsHovered(true)}
             onMouseLeave={() => setIsHovered(false)}
         >
             <div style={styles.card}>
                 <div style={styles.cardImageContainer}>
-                    <img src={car.img} alt={car.name} style={styles.cardImage} />
-                    <div style={styles.cardBottomLeftIcons}>
-                        <div style={styles.iconWrapper}><span style={styles.starIcon}>⭐</span></div>
-                    </div>
-                    <div style={styles.cardTopRightBadges}>
-                        <div style={{...styles.badge, ...styles.badgeBlue}}><span>O<small>km</small></span></div>
-                        <div style={{...styles.badge, ...styles.badgeOrange}} title="ТОП 3"><span>🏆</span></div>
-                        <div style={{...styles.badge, ...styles.badgeLightBlue}}><span>4+💺</span></div>
-                    </div>
-                    {car.mileage > 0 && (
-                        <div style={styles.mileageBadge}>
-                            <div>Пробег: {car.mileage.toLocaleString('ru-RU')} км</div>
-                            <div>Год: {car.year}</div>
-                        </div>
-                    )}
+                    <img src={(car.images && car.images[0]) || car.img} alt={car.name} style={styles.cardImage} />
+                    <div style={styles.cardBottomLeftIcons}><div style={styles.iconWrapper}><span style={styles.starIcon}>⭐</span></div></div>
+                    <div style={styles.cardTopRightBadges}><div style={{...styles.badge, ...styles.badgeBlue}}><span>O<small>km</small></span></div><div style={{...styles.badge, ...styles.badgeOrange}} title="ТОП 3"><span>🏆</span></div><div style={{...styles.badge, ...styles.badgeLightBlue}}><span>4+💺</span></div></div>
+                    {car.mileage > 0 && (<div style={styles.mileageBadge}><div>Пробег: {car.mileage.toLocaleString('ru-RU')} км</div><div>Год: {car.year}</div></div>)}
                 </div>
                 <div style={styles.cardBody}>
-                    <div style={styles.cardTitleWrapper}>
-                        <h3 style={styles.cardTitle}>{car.name}</h3>
-                        <div style={{...styles.cardTitleTooltip, display: isHovered ? 'block' : 'none'}}>{car.name}</div>
-                    </div>
-                    <div style={styles.cardLocationAndId}>
-                        <span style={styles.cardLocation}>В НАЛИЧИИ В КИТАЕ</span>
-                        <span style={styles.cardId}>ID: {car.id}</span>
-                    </div>
+                    <div style={styles.cardTitleWrapper}><h3 style={styles.cardTitle}>{car.name}</h3><div style={{...styles.cardTitleTooltip, display: isHovered ? 'block' : 'none'}}>{car.name}</div></div>
+                    <div style={styles.cardLocationAndId}><span style={styles.cardLocation}>В НАЛИЧИИ В КИТАЕ</span><span style={styles.cardId}>ID: {car.id}</span></div>
                     <div style={styles.cardFooter}>
                         <div style={{...styles.priceInfo, opacity: isHovered ? 0 : 1}}>
-                            <div style={styles.cardPriceRussia}>~ {car.price.toLocaleString('ru-RU')} ₽</div>
-                            <div style={styles.cardPriceSubtitleWrapper}>
-                                <span style={styles.cardPriceChina}>{(car.price / 1.5).toLocaleString('ru-RU', {maximumFractionDigits: 0})} ₽ в Китае</span>
-                                <span style={styles.cardPriceDisclaimer}>цена в России (под ключ)</span>
-                            </div>
+                            <div style={styles.cardPriceRussia}>~ {car.price_russia.toLocaleString('ru-RU')} ₽</div>
+                            <div style={styles.cardPriceSubtitleWrapper}><span style={styles.cardPriceChina}>{car.price_china.toLocaleString('ru-RU', {maximumFractionDigits: 0})} ₽ в Китае</span><span style={styles.cardPriceDisclaimer}>цена в России (под ключ)</span></div>
                         </div>
                         <div style={{...styles.orderInfo, opacity: isHovered ? 1 : 0}}>
-                            <div style={styles.cardPriceChinaFull}>{(car.price / 1.5).toLocaleString('ru-RU')} ₽ <br/><span style={{fontSize: '10px'}}>Цена в Китае</span></div>
+                            <div style={styles.cardPriceChinaFull}>{car.price_china.toLocaleString('ru-RU')} ₽ <br/><span style={{fontSize: '10px'}}>Цена в Китае</span></div>
                             <button style={styles.orderButton} onClick={(e) => { e.preventDefault(); alert(`Заказ ${car.name}`); }}>Заказать</button>
                         </div>
                     </div>
@@ -116,66 +60,79 @@ const CarCard = ({ car, brandSlug, modelSlug }) => {
 // ======================= ОСНОВНОЙ КОМПОНЕНТ СТРАНИЦЫ МОДЕЛИ =======================
 const ModelPage = () => {
     const { brandSlug, modelSlug } = useParams();
-    const brandData = db[brandSlug];
-    const modelData = brandData?.models.find(m => m.slug === modelSlug);
     
+    const [pageData, setPageData] = useState({ brandName: '', modelName: '', headerImages: [] });
+    const [allCarsForModel, setAllCarsForModel] = useState([]);
+    const [displayedCars, setDisplayedCars] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
+
     const [activeTab, setActiveTab] = useState('all');
     const [filters, setFilters] = useState({});
-    const [displayedCars, setDisplayedCars] = useState([]);
 
     const handleFilterChange = (group, values) => {
         setFilters(prev => ({ ...prev, [group]: values }));
     };
 
     useEffect(() => {
-        if (!brandData || !modelData) {
-            setDisplayedCars([]);
-            return;
-        }
+        const fetchData = async () => {
+            setLoading(true);
+            setError(null);
+            try {
+                const response = await fetch(`http://localhost:4000/api/cars/${brandSlug}`);
+                if (!response.ok) throw new Error('Бренд не найден');
+                const allBrandCars = await response.json();
 
-        let cars = brandData.cars.filter(c => c.model === modelData.name);
+                if (allBrandCars.length === 0) throw new Error('Машин для этого бренда не найдено');
 
-        if (activeTab === 'new') {
-            cars = cars.filter(c => c.mileage < 1000);
-        } else if (activeTab === 'used') {
-            cars = cars.filter(c => c.mileage >= 1000);
-        }
+                const carsForModel = allBrandCars.filter(car => car.model.toLowerCase() === modelSlug.toLowerCase());
 
-        if (filters.year && filters.year.length > 0) {
-            cars = cars.filter(c => filters.year.includes(String(c.year)));
-        }
-        
+                if (carsForModel.length === 0) throw new Error(`Модель '${modelSlug}' не найдена`);
+                
+                // Добавляем brandSlug и modelSlug к каждой машине для корректной работы Link в CarCard
+                const carsWithSlugs = carsForModel.map(car => ({ ...car, brandSlug, modelSlug }));
+
+                setAllCarsForModel(carsWithSlugs);
+                setPageData({
+                    brandName: carsWithSlugs[0].brand,
+                    modelName: carsWithSlugs[0].model,
+                    headerImages: carsWithSlugs[0].headerImages || ["https://i.ibb.co/bzzx45G/l7-1.png", "https://i.ibb.co/Y0dmyhJ/l7-2.png"]
+                });
+
+            } catch (err) {
+                console.error("Ошибка:", err);
+                setError(err.message);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchData();
+    }, [brandSlug, modelSlug]);
+
+    useEffect(() => {
+        let cars = [...allCarsForModel];
+        if (activeTab === 'new') cars = cars.filter(c => c.mileage < 1000);
+        if (activeTab === 'used') cars = cars.filter(c => c.mileage >= 1000);
+        if (filters.year && filters.year.length > 0) cars = cars.filter(c => filters.year.includes(String(c.year)));
         setDisplayedCars(cars);
-        
-    }, [brandSlug, modelSlug, activeTab, filters]);
+    }, [activeTab, filters, allCarsForModel]);
 
-    if (!brandData || !modelData) {
-        return <div style={{padding: '50px'}}>Модель "{modelSlug}" для марки "{brandSlug}" не найдена.</div>;
-    }
-    
-    const allCarsForModel = brandData.cars.filter(c => c.model === modelData.name);
+    if (loading) return <div style={styles.centeredMessage}>Загрузка...</div>;
+    if (error) return <div style={{...styles.centeredMessage, color: 'red'}}>Ошибка: {error}</div>;
+
     const countAll = allCarsForModel.length;
     const countNew = allCarsForModel.filter(c => c.mileage < 1000).length;
     const countUsed = countAll - countNew;
 
     return (
         <div style={styles.page}>
-            <div style={styles.breadcrumb}>
-                <Link to="/" style={styles.breadcrumbLink}>🏠</Link> / 
-                <Link to={`/cars/${brandSlug}`} style={styles.breadcrumbLink}>{brandData.brandName.toUpperCase()}</Link> / {modelData.name.toUpperCase()}
-            </div>
+            <div style={styles.breadcrumb}><Link to="/" style={styles.breadcrumbLink}>🏠</Link> / <Link to={`/cars/${brandSlug}`} style={styles.breadcrumbLink}>{pageData.brandName.toUpperCase()}</Link> / {pageData.modelName.toUpperCase()}</div>
             <div style={styles.header}>
-                <h1 style={styles.pageTitle}>Купить {brandData.brandName} {modelData.name}</h1>
-                {modelData.headerImages && (
-                    <div style={styles.headerImages}>
-                        <img src={modelData.headerImages[0]} style={styles.headerImage} alt={`${modelData.name} 1`} />
-                        <img src={modelData.headerImages[1]} style={styles.headerImage} alt={`${modelData.name} 2`} />
-                    </div>
-                )}
+                <h1 style={styles.pageTitle}>Купить {pageData.brandName} {pageData.modelName}</h1>
+                <div style={styles.headerImages}><img src={pageData.headerImages[0]} style={styles.headerImage} /><img src={pageData.headerImages[1]} style={styles.headerImage} /></div>
             </div>
-            
             <FilterBlock filters={filters} onFilterChange={handleFilterChange} />
-            
             <div style={styles.tabsContainer}>
                 <div style={styles.tabs}>
                     <button onClick={() => setActiveTab('all')} style={activeTab === 'all' ? styles.activeTab : styles.tab}>Все ({countAll})</button>
@@ -184,16 +141,15 @@ const ModelPage = () => {
                 </div>
                 <button style={styles.compareButton}>❤️ Сравнить все комплектации</button>
             </div>
-
-            <div style={styles.resultsGrid}>
-                {displayedCars.map(car => <CarCard key={car.id} car={car} brandSlug={brandSlug} modelSlug={modelSlug} />)}
-            </div>
+            <div style={styles.resultsGrid}>{displayedCars.map(car => <CarCard key={car.id} car={car} />)}</div>
         </div>
     );
 };
 
+// ======================= СТИЛИ =======================
 const styles = {
     page: { maxWidth: '1280px', margin: '0 auto', padding: '20px', fontFamily: '-apple-system, sans-serif', backgroundColor: '#fff', color: '#333' },
+    centeredMessage: { display: 'flex', justifyContent: 'center', alignItems: 'center', height: '80vh', fontSize: '24px' },
     breadcrumb: { display: 'flex', alignItems: 'center', gap: '8px', color: '#888', marginBottom: '20px', fontSize: '14px' },
     breadcrumbLink: { textDecoration: 'none', color: '#555' },
     header: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '30px' },
@@ -212,7 +168,7 @@ const styles = {
     compareButton: { color: '#E30016', background: 'none', border: 'none', cursor: 'pointer', fontWeight: 'bold' },
     resultsGrid: { display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '20px' },
     cardLink: { textDecoration: 'none', color: 'inherit' },
-    card: { border: '1px solid #f0f0f0', borderRadius: '10px', backgroundColor: 'white', display: 'flex', flexDirection: 'column', boxShadow: '0 4px 6px rgba(0,0,0,0.05)', transition: 'transform 0.2s ease, box-shadow 0.2s ease', '&:hover': { transform: 'translateY(-5px)', boxShadow: '0 8px 15px rgba(0,0,0,0.1)'} },
+    card: { border: '1px solid #f0f0f0', borderRadius: '10px', backgroundColor: 'white', display: 'flex', flexDirection: 'column', boxShadow: '0 4px 6px rgba(0,0,0,0.05)', transition: 'transform 0.2s ease, box-shadow 0.2s ease' },
     cardImageContainer: { position: 'relative', width: '100%', paddingTop: '66.66%', overflow: 'hidden', borderTopLeftRadius: '10px', borderTopRightRadius: '10px' },
     cardImage: { position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', objectFit: 'cover' },
     cardBottomLeftIcons: { position: 'absolute', bottom: '10px', left: '10px', display: 'flex', gap: '5px' },

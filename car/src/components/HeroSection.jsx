@@ -1,99 +1,28 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 
 // ====================================================================
-// ПОЛНЫЕ ДАННЫЕ С ДОБАВЛЕННЫМ ПОЛЕМ 'slug' ДЛЯ URL
+// КОНСТАНТЫ
 // ====================================================================
 
-const carData = {
-  chinese: {
-    title: "Китайские",
-    brands: [
-        { name: 'LiXiang', slug: 'lixiang', count: 3298, imgSrc: 'https://crh.market/storage/car-brands/January2023/QHue9Fsr5hV2jlLLNNKL.jpg' },
-        { name: 'ZEEKR', slug: 'zeekr', count: 1076, imgSrc: 'https://crh.market/storage/car-brands/January2023/9zTrJWWsHFZk4tTt85gI.png' },
-        { name: 'Voyah', slug: 'voyah', count: 1074, imgSrc: 'https://crh.market/storage/car-brands/January2023/WALARkbzhKeTFBBgNv0y.png' },
-        { name: 'BYD', slug: 'byd', count: 18825, imgSrc: 'https://crh.market/storage/car-brands/February2023/3fpP277q6V8aQx78Iy2F.jpg' },
-        { name: 'Jetta', slug: 'jetta', count: 931, imgSrc: 'https://crh.market/storage/car-brands/January2023/YW3kmUZn5AnCSvu94fTG.png' },
-        { name: 'red flag', slug: 'red-flag', count: 4466, imgSrc: 'https://crh.market/storage/car-brands/January2023/Kp17AsniuhHVVLoepxq2.png' },
-        { name: 'Link&Co', slug: 'link-co', count: 4790, imgSrc: 'https://crh.market/storage/car-brands/January2023/66md7kIG1rsIJtkBd5cr.png' },
-        { name: 'Lotus', slug: 'lotus', count: 98, imgSrc: 'https://crh.market/storage/car-brands/January2024/MSTUcFFyBj3HfczdLvwy.png' },
-        { name: 'Changan', slug: 'changan', count: 9904, imgSrc: 'https://crh.market/storage/car-brands/January2023/twq0V6jJ0hGBOiiS3rJm.png' },
-        { name: 'Deepal', slug: 'deepal', count: 896, imgSrc: 'https://crh.market/storage/car-brands/July2023/VEPSuJQaYiLOwxY2Aocy.png' },
-        { name: 'Galaxy', slug: 'galaxy', count: 122, imgSrc: 'https://crh.market/storage/car-brands/July2023/fchLV5jmW4D2ceE72r3N.png' },
-        { name: 'Futian (Foton)', slug: 'foton', count: 1106, imgSrc: 'https://crh.market/storage/car-brands/January2023/j8VMNhPq0yFeX3fo5zVR.png' },
-        { name: 'GAC', slug: 'gac', count: 6833, imgSrc: 'https://crh.market/storage/car-brands/January2023/au4MZ4FJhxZnYB0zObaP.png' },
-        { name: 'Geely', slug: 'geely', count: 14663, imgSrc: 'https://crh.market/storage/car-brands/January2023/4oGUXwvDipXePkS1tC7I.jpg' },
-        { name: 'AITO', slug: 'aito', count: 1670, imgSrc: 'https://crh.market/storage/car-brands/January2023/A5rmPJdGr8JCaHUH8WX0.jpg' },
-        { name: 'Hi-Phi', slug: 'hiphi', count: 119, imgSrc: 'https://crh.market/storage/car-brands/January2023/9ERaTXa2i50bgpjfIDWz.png' },
-        { name: 'Wuling', slug: 'wuling', count: 11299, imgSrc: 'https://crh.market/storage/car-brands/January2023/08nvbca1LQs3dju5NAET.png' },
-        { name: 'Haval', slug: 'haval', count: 8392, imgSrc: 'https://crh.market/storage/car-brands/February2023/9faTz9LvuiAd6Hd7kHE9.png' },
-        { name: 'ROEWE', slug: 'roewe', count: 4819, imgSrc: 'https://crh.market/storage/car-brands/January2023/uT9PGDQyDdMYhAkRTqD2.png' },
-        { name: 'Chery', slug: 'chery', count: 4283, imgSrc: 'https://crh.market/storage/car-brands/January2023/WS1ipMAqjXridxckW8rA.png' },
-        { name: 'Baojun', slug: 'baojun', count: 3322, imgSrc: 'https://crh.market/storage/car-brands/January2023/0nn9oVneYQvNy268r5AS.png' },
-        { name: 'NIO', slug: 'nio', count: 3205, imgSrc: 'https://crh.market/storage/car-brands/January2023/lW3URvwmYvBbAIhx76VG.jpg' },
-        { name: 'X-Peng', slug: 'xpeng', count: 2789, imgSrc: 'https://crh.market/storage/car-brands/January2023/iEB2xpU1tr0rsICdK8xR.png' },
-        { name: 'Leapmotor', slug: 'leapmotor', count: 2326, imgSrc: 'https://crh.market/storage/car-brands/January2023/9yl8iAynAvRMQo5UdHfG.png' },
-        { name: 'Ora', slug: 'ora', count: 2264, imgSrc: 'https://crh.market/storage/car-brands/February2023/w5XhVFXeooiOq7miPnJQ.png' },
-        { name: 'Tank', slug: 'tank', count: 2166, imgSrc: 'https://crh.market/storage/car-brands/January2023/T6Vk0SaMImBEKh0y7iIo.png' },
-        { name: 'Aion', slug: 'aion', count: 2077, imgSrc: 'https://crh.market/storage/car-brands/February2023/ukSibPEPrrAEt4HO1p2q.jpg' },
-    ]
-  },
-  european: {
-    title: "Европейские",
-    brands: [
-      { name: 'Volkswagen', slug: 'volkswagen', count: 35029, imgSrc: 'https://crh.market/storage/car-brands/January2023/oN6U4CbaADyyYY8kM5Fo.png' },
-      { name: 'Mercedes', slug: 'mercedes', count: 18099, imgSrc: 'https://crh.market/storage/car-brands/January2023/9QeLliPTh1Xcuj2Suv4x.png' },
-      { name: 'Skoda', slug: 'skoda', count: 1673, imgSrc: 'https://crh.market/storage/car-brands/January2023/YyKBxkF8mMHh2Z8wC5DA.png' },
-      { name: 'BMW', slug: 'bmw', count: 11719, imgSrc: 'https://crh.market/storage/car-brands/January2023/nLWDZ29c8FA2nNzYqKis.png' },
-      { name: 'Audi', slug: 'audi', count: 19615, imgSrc: 'https://crh.market/storage/car-brands/January2023/xPre3OJpfI9YS0MlOYoQ.png' },
-      { name: 'Volvo', slug: 'volvo', count: 4799, imgSrc: 'https://crh.market/storage/car-brands/January2023/XKBA5typU22iCe3ju9FG.png' },
-      { name: 'Porsche', slug: 'porsche', count: 4621, imgSrc: 'https://crh.market/storage/car-brands/January2023/8rYmBdn7jbXOzYKURGa8.png' },
-      { name: 'Mini', slug: 'mini', count: 4046, imgSrc: 'https://crh.market/storage/car-brands/January2023/OajxwlgB6fAmL02durRn.png' },
-      { name: 'Landrover', slug: 'landrover', count: 2745, imgSrc: 'https://crh.market/storage/car-brands/January2023/Z32TiaBAXAwoYRweubVM.png' },
-      { name: 'MG', slug: 'mg', count: 2559, imgSrc: 'https://crh.market/storage/car-brands/January2023/7nMHue7wNIxxszU04TFo.png' },
-      { name: 'Peugeot', slug: 'peugeot', count: 1559, imgSrc: 'https://crh.market/storage/car-brands/January2023/M85GeZmpdOlzcCV4uEen.png' },
-    ]
-  },
-  american: {
-    title: "Американские",
-    brands: [
-      { name: 'Chevrolet', slug: 'chevrolet', count: 5318, imgSrc: 'https://crh.market/storage/car-brands/January2023/x1H05iynLuyVQVG06GYq.png' },
-      { name: 'Tesla', slug: 'tesla', count: 9621, imgSrc: 'https://crh.market/storage/car-brands/January2023/KJbDyOd9zXR0TJa9SeZj.png' },
-      { name: 'Ford', slug: 'ford', count: 6560, imgSrc: 'https://crh.market/storage/car-brands/January2023/y8lvFQoeSRMqDhtcNXag.png' },
-      { name: 'Lincoln', slug: 'lincoln', count: 1887, imgSrc: 'https://crh.market/storage/car-brands/January2023/2PrDfbeE7GPSZ1vsWBSA.png' },
-      { name: 'Buick', slug: 'buick', count: 13223, imgSrc: 'https://crh.market/storage/car-brands/January2023/miax2jJnHpLnh5NJekVt.png' },
-      { name: 'Cadillac', slug: 'cadillac', count: 5420, imgSrc: 'https://crh.market/storage/car-brands/January2023/Lbe7CHrq47SlD1uNy3H5.png' },
-      { name: 'Jeep', slug: 'jeep', count: 3278, imgSrc: 'https://crh.market/storage/car-brands/January2023/AzaQ1IdGkuqY1ANrNA1z.png' },
-    ]
-  },
-  japanese: {
-    title: "Японские",
-    brands: [
-      { name: 'Honda', slug: 'honda', count: 17249, imgSrc: 'https://crh.market/storage/car-brands/January2023/ocGevlYn5DLj9AoGYKAM.png' },
-      { name: 'Mazda', slug: 'mazda', count: 3184, imgSrc: 'https://crh.market/storage/car-brands/January2023/kxPLvmHX7h6NTeLeiZE7.png' },
-      { name: 'Toyota', slug: 'toyota', count: 16391, imgSrc: 'https://crh.market/storage/car-brands/January2023/AnK6MxkXBaqLJmC9gsEF.png' },
-      { name: 'Nissan', slug: 'nissan', count: 8985, imgSrc: 'https://crh.market/storage/car-brands/January2023/X5Xm6WcevuZoZhh1JJl1.png' },
-      { name: 'Lexus', slug: 'lexus', count: 3486, imgSrc: 'https://crh.market/storage/car-brands/January2023/YrxIoyTWo1tpdZmPnoUe.png' },
-    ]
-  },
-  korean: {
-    title: "Корейские",
-    brands: [
-      { name: 'Hyundai', slug: 'hyundai', count: 63812, imgSrc: 'https://crh.market/storage/car-brands/January2023/jdXjvkrIAAzZTgmUobG9.png' },
-      { name: 'Kia', slug: 'kia', count: 62892, imgSrc: 'https://crh.market/storage/car-brands/January2023/NObZUycdeZUZeFlSsrmf.png' },
-      { name: 'Genesis', slug: 'genesis', count: 10161, imgSrc: 'https://crh.market/storage/car-brands/July2023/FH2fgVUeskRN77HAUGXU.png' },
-      { name: 'Renault Samsung', slug: 'renault-samsung', count: 3, imgSrc: 'https://crh.market/storage/car-brands/July2023/Ht2xAE7bLrf1XBGHoFeJ.png' },
-    ]
-  }
-};
-
+// Сколько марок видно по умолчанию в секции
 const INITIAL_VISIBLE_COUNT = { chinese: 11, european: 5, american: 5, japanese: 5, korean: 4 };
 const ICON_PLACEHOLDER = 'https://placehold.co/32x32/f0f0f0/ccc.png?text=...';
+
+// ====================================================================
+// ВСПОМОГАТЕЛЬНЫЕ КОМПОНЕНТЫ
+// ====================================================================
 
 const BrandItem = ({ slug, imgSrc, name, count }) => (
   <Link to={slug ? `/cars/${slug}` : '#'} style={styles.brandLink}>
     <div style={styles.brandInner}>
-      <img src={imgSrc || ICON_PLACEHOLDER} alt={name} style={styles.brandLogo} onError={(e) => { e.currentTarget.src = ICON_PLACEHOLDER; }} />
+      <img 
+        src={imgSrc || ICON_PLACEHOLDER} 
+        alt={name} 
+        style={styles.brandLogo} 
+        // Если иконка не загрузилась, используем заглушку
+        onError={(e) => { e.currentTarget.src = ICON_PLACEHOLDER; }} 
+      />
       <div style={styles.brandName}>{name}</div>
     </div>
     <div style={styles.brandCount}>{count}</div>
@@ -104,11 +33,19 @@ const BrandSection = ({ sectionKey, title, brands, isExpanded, onToggle }) => {
   const initialCount = INITIAL_VISIBLE_COUNT[sectionKey] || brands.length;
   const canBeExpanded = brands.length > initialCount;
   const displayedBrands = isExpanded ? brands : brands.slice(0, initialCount);
+  
   return (
     <div style={styles.brandSectionWrapper(sectionKey)}>
       <div style={styles.sectionTitle}>{title}</div>
       <div style={styles.brandGrid(sectionKey)}>
-        {displayedBrands.map(brand => <BrandItem key={`${brand.name}-${brand.count}`} {...brand} />)}
+        {displayedBrands.map(brand => (
+          <BrandItem 
+            key={brand.slug} 
+            {...brand} 
+            // count теперь динамически считается бэкендом
+            count={brand.count} 
+          />
+        ))}
         {canBeExpanded && (
           <button onClick={() => onToggle(sectionKey)} style={styles.showAllButton}>
             <span style={styles.showAllText}>{isExpanded ? 'Скрыть' : 'Показать все'}</span>
@@ -122,24 +59,65 @@ const BrandSection = ({ sectionKey, title, brands, isExpanded, onToggle }) => {
   );
 };
 
-const MainContent = ({ onToggleSection, expandedSections }) => (
-    <div style={styles.mainContent}>
-        <div style={styles.header}>
-            <h1 style={styles.mainTitle}>Автомобили из Китая в <span style={{color: '#E30016'}}>1 клик</span></h1>
-            <span style={styles.subHeader}>МАРКЕТПЛЕЙС КИТАЙСКИХ АВТОМОБИЛЕЙ</span>
+// ====================================================================
+// ОСНОВНОЙ КОНТЕНТ (Отображает марки и обрабатывает состояния загрузки)
+// ====================================================================
+
+const MainContent = ({ carData, loading, error, onToggleSection, expandedSections }) => {
+    
+    // 1. Состояние загрузки
+    if (loading) return (
+        <div style={styles.mainContent}>
+            <div style={{...styles.header, justifyContent: 'center', marginTop: 50}}>
+                <h1 style={{...styles.mainTitle, color: '#E30016'}}>Загрузка марок...</h1>
+            </div>
+            <div style={{minHeight: 300}}></div>
         </div>
-        <div style={styles.tabs}>
-          <button style={{...styles.tab, ...styles.activeTab}}>Все</button>
-          <button style={styles.tab}>Новые</button>
-          <button style={styles.tab}>С пробегом</button>
+    );
+
+    // 2. Состояние ошибки
+    if (error) return (
+        <div style={styles.mainContent}>
+             <div style={{...styles.header, justifyContent: 'center', marginTop: 50}}>
+                <h1 style={{...styles.mainTitle, color: 'red', textAlign: 'center'}}>
+                    Ошибка загрузки данных:
+                </h1>
+                <p style={{textAlign: 'center', color: '#555', marginTop: 10}}>{error}</p>
+                <p style={{textAlign: 'center', color: '#555'}}>
+                    Проверьте, запущен ли ваш бэкенд-сервер на порту 4000.
+                </p>
+            </div>
+            <div style={{minHeight: 300}}></div>
         </div>
-        <div style={styles.allBrandsContainer}>
-          {Object.entries(carData).map(([key, value]) => (
-            <BrandSection key={key} sectionKey={key} title={value.title} brands={value.brands} isExpanded={!!expandedSections[key]} onToggle={onToggleSection} />
-          ))}
+    );
+    
+    // 3. Успешная загрузка данных
+    return (
+        <div style={styles.mainContent}>
+            <div style={styles.header}>
+                <h1 style={styles.mainTitle}>Автомобили из Китая в <span style={{color: '#E30016'}}>1 клик</span></h1>
+                <span style={styles.subHeader}>МАРКЕТПЛЕЙС КИТАЙСКИХ АВТОМОБИЛЕЙ</span>
+            </div>
+            <div style={styles.tabs}>
+                <button style={{...styles.tab, ...styles.activeTab}}>Все</button>
+                <button style={styles.tab}>Новые</button>
+                <button style={styles.tab}>С пробегом</button>
+            </div>
+            <div style={styles.allBrandsContainer}>
+                {Object.entries(carData).map(([key, value]) => (
+                    <BrandSection 
+                        key={key} 
+                        sectionKey={key} 
+                        title={value.title} 
+                        brands={value.brands} 
+                        isExpanded={!!expandedSections[key]} 
+                        onToggle={onToggleSection} 
+                    />
+                ))}
+            </div>
         </div>
-    </div>
-);
+    );
+};
 
 const Sidebar = () => (
     <div style={styles.sidebar}>
@@ -166,19 +144,66 @@ const Sidebar = () => (
     </div>
 );
 
+// ====================================================================
+// ГЛАВНЫЙ КОМПОНЕНТ HeroSection (Hooks)
+// ====================================================================
+
 function HeroSection() {
     const [expandedSections, setExpandedSections] = useState({});
+    
+    // --- Состояния для загрузки данных из БД ---
+    const [carData, setCarData] = useState({});
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
+    
     const handleToggleSection = (sectionKey) => {
         setExpandedSections(prev => ({ ...prev, [sectionKey]: !prev[sectionKey] }));
     };
 
+    // Хук для загрузки данных марок из API при монтировании компонента
+    useEffect(() => {
+        const fetchBrands = async () => {
+            setLoading(true);
+            setError(null);
+            try {
+                // Запрос к нашему новому бэкенд-эндпоинту
+                const response = await fetch('http://localhost:4000/api/brands'); 
+                
+                if (!response.ok) {
+                    throw new Error(`Ошибка сети: ${response.statusText} (Статус: ${response.status})`);
+                }
+                
+                const data = await response.json();
+                setCarData(data); // Обновляем состояние загруженными данными
+            } catch (err) {
+                console.error("Ошибка загрузки марок:", err);
+                // Устанавливаем сообщение об ошибке для отображения пользователю
+                setError(err.message || "Не удалось подключиться к серверу.");
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchBrands();
+    }, []); // Запрос выполнится только один раз при монтировании
+
     return (
         <div style={styles.container}>
-            <MainContent onToggleSection={handleToggleSection} expandedSections={expandedSections} />
+            <MainContent 
+                carData={carData} 
+                loading={loading}
+                error={error}
+                onToggleSection={handleToggleSection} 
+                expandedSections={expandedSections} 
+            />
             <Sidebar />
         </div>
     );
 }
+
+// ====================================================================
+// СТИЛИ (Остаются без изменений)
+// ====================================================================
 
 const styles = {
     container: { display: 'flex', fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif', maxWidth: '1280px', margin: '40px auto', padding: '0 24px' },
@@ -208,7 +233,7 @@ const styles = {
     activeFilter: { backgroundColor: '#E30016', color: '#fff', border: '1px solid #E30016' },
     inactiveFilter: { backgroundColor: '#fff', color: '#333', border: '1px solid #e0e0e0'},
     hr: { border: 'none', borderTop: '1px solid rgb(251, 235, 235)', margin: '20px 0' },
-    submitButton: { width: '100%', padding: '15px', fontSize: '16px', fontWeight: 'bold', backgroundColor: '#E30016', color: '#fff', border: 'none', borderRadius: '8px', cursor: 'pointer', marginTop: '20px' },
+    submitButton: { width: '100%', padding: '15px', fontSize: '16px', fontWeight: 'bold', backgroundColor: '#E30016', color: '#fff', border: 'none', borderRadius: '8px', cursor: 'pointer', marginTop: '20px', textDecoration: 'none', textAlign: 'center' },
     stats: { marginTop: '24px', fontSize: '14px', color: '#555', lineHeight: '1.8' },
     statRow: { display: 'flex', justifyContent: 'space-between', alignItems: 'center' },
 };
