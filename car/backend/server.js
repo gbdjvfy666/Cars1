@@ -18,50 +18,45 @@ const pool = new Pool({
     port: 5432,
 });
 
-/**
- * Функция для получения данных марок из БД, динамического подсчета машин 
- * и форматирования результата для фронтенда.
- */
 async function getFormattedBrands() {
     try {
-        // --- ИСПРАВЛЕННЫЙ SQL-ЗАПРОС С ПОДСЧЕТОМ ---
-        // Использован фактический столбец из вашей БД: b.country_group
+        // --- ОБНОВЛЕННЫЙ SQL-ЗАПРОС ---
+        // Он сравнивает slug из таблицы brands со значением из cars.brand, приводя оба к нижнему регистру.
         const sqlQuery = `
             SELECT 
                 b.name, 
                 b.slug, 
                 b.img_src, 
-                b.country_group AS country_key, 
-                b.country_group AS country_title, 
-                COUNT(c.id) AS car_count 
+                b.country_group,
+                COUNT(c.id) AS car_count
             FROM 
                 brands b
             LEFT JOIN 
-                cars c ON LOWER(b.slug) = LOWER(c.brand) 
+                cars c ON LOWER(b.slug) = LOWER(c.brand)
             GROUP BY 
-                b.name, b.slug, b.img_src, b.country_group 
+                b.name, b.slug, b.img_src, b.country_group
             ORDER BY 
-                b.country_group, b.name; 
+                b.country_group, b.name;
         `;
         
         const result = await pool.query(sqlQuery);
         const formattedData = {};
 
-        // Группируем данные по стране (country_key)
+        // Группируем данные по стране (country_group)
         for (const row of result.rows) {
-            const { country_key, country_title, name, slug, car_count, img_src } = row;
+            const { country_group, name, slug, car_count, img_src } = row;
+            const countryKey = country_group.toLowerCase(); // 'chinese', 'european' и т.д.
 
-            if (!formattedData[country_key]) {
-                formattedData[country_key] = {
-                    // Используем название группы, например, "chinese"
-                    title: country_title.charAt(0).toUpperCase() + country_title.slice(1), 
+            if (!formattedData[countryKey]) {
+                formattedData[countryKey] = {
+                    title: country_group.charAt(0).toUpperCase() + country_group.slice(1), 
                     brands: []
                 };
             }
-            formattedData[country_key].brands.push({
+            
+            formattedData[countryKey].brands.push({
                 name,
                 slug,
-                // Используем car_count, преобразованный в целое число
                 count: parseInt(car_count, 10), 
                 imgSrc: img_src
             });
@@ -71,7 +66,7 @@ async function getFormattedBrands() {
 
     } catch (err) {
         console.error('❌ Критическая ошибка при выполнении запроса к БД:', err);
-        throw err;
+        throw err; // Пробрасываем ошибку дальше, чтобы app.get мог ее поймать
     }
 }
 

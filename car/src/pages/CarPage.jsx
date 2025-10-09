@@ -1,22 +1,84 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React,{ useState, useEffect, useRef } from 'react';
 import { useParams, Link } from 'react-router-dom';
 
-// ======================= МЕЛКИЕ КОМПОНЕНТЫ (без изменений) =======================
+// ======================= ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ =======================
 
-const ImageGallery = ({ images, tags, id }) => ( <div style={styles.galleryContainer}><div style={styles.mainImageWrapper}><img src={images[0]} style={styles.mainImage} alt="Main car view" /><div style={styles.imageTags}>{tags.map(tag => <span key={tag} style={styles.imageTag}>{tag}</span>)}</div><div style={styles.imageId}>ID: {id}</div><div style={styles.inStockLabel}>В наличии в Китае</div></div><div style={styles.thumbnailGrid}>{images.slice(1, 3).map((img, index) => <img key={index} src={img} style={styles.thumbnail} alt={`Thumbnail ${index + 1}`} />)}<div style={styles.thumbnailOverlay}><span>+915</span></div></div></div> );
+// Безопасный парсер JSON. Если приходит не строка или невалидный JSON, вернет пустой массив или объект.
+const safeJSONParse = (data, returnType = 'array') => {
+    if (typeof data !== 'string') {
+        // Если это уже объект/массив, просто возвращаем его
+        return data || (returnType === 'array' ? [] : {});
+    }
+    try {
+        const parsed = JSON.parse(data);
+        return parsed;
+    } catch (e) {
+        // В случае ошибки парсинга, возвращаем пустую структуру
+        return returnType === 'array' ? [] : {};
+    }
+};
+
+// Безопасный парсер для поля images, которое хранится в формате {url1,url2}
+const parseImageString = (imageStr) => {
+    if (!imageStr || typeof imageStr !== 'string') return [];
+    // Удаляем фигурные скобки и разбиваем по запятой
+    return imageStr.replace(/[{}]/g, '').split(',').filter(url => url);
+}
+
+
+// ======================= МЕЛКИЕ КОМПОНЕНТЫ =======================
+
+const ImageGallery = ({ images, tags, id }) => ( <div style={styles.galleryContainer}><div style={styles.mainImageWrapper}><img src={images[0]} style={styles.mainImage} alt="Main car view" /><div style={styles.imageTags}>{tags.map(tag => <span key={tag} style={styles.imageTag}>{tag}</span>)}</div><div style={styles.imageId}>ID: {id}</div><div style={styles.inStockLabel}>В наличии в Китае</div></div><div style={styles.thumbnailGrid}>{images.slice(1, 3).map((img, index) => <img key={index} src={img} style={styles.thumbnail} alt={`Thumbnail ${index + 1}`} />)}<div style={styles.thumbnailOverlay}><span>+{(images.length - 3 > 0) ? images.length - 3 : '!'}</span></div></div></div> );
 const SpecsTable = ({ specs }) => ( <div style={styles.specsTable}>{Object.entries(specs).map(([key, value]) => ( <div key={key} style={styles.specItem}><div style={styles.specKey}>{key}:</div><div style={styles.specValue}>{value}</div></div>))}</div> );
 const OptionsCarousel = ({ options }) => ( <div style={styles.optionsContainer}><h2 style={styles.sectionTitle}>Опции</h2><div style={styles.optionsCarousel}><button style={styles.carouselArrow}>{"<"}</button>{options.map((opt, i) => (<div key={i} style={styles.optionItem}><img src={opt.icon} style={styles.optionIcon} alt={opt.name} /><div style={styles.optionName}>{opt.name}</div></div>))}<button style={styles.carouselArrow}>{">"}</button></div><div style={styles.buttonsContainer}><button style={styles.redButton}>Сравнить все комплектации</button><button style={styles.whiteButton}>Как проходит сделка?</button></div></div> );
+
+// 🚨 ИСПРАВЛЕННЫЙ КОМПОНЕНТ CHARACTERISTICS
 const Characteristics = ({ characteristics }) => {
+    if (!characteristics || Object.keys(characteristics).length === 0) return null;
+
     const [activeSection, setActiveSection] = useState(Object.keys(characteristics)[0] || "");
     const sectionRefs = useRef({});
-    const containerRef = useRef(null);
-    const navRef = useRef(null);
-    const [containerHeight, setContainerHeight] = useState('auto');
-    useEffect(() => { if (navRef.current) { setContainerHeight(`${navRef.current.offsetHeight}px`); } }, [characteristics]);
-    const handleNavClick = (key) => { setActiveSection(key); sectionRefs.current[key]?.scrollIntoView({ behavior: 'smooth', block: 'start' }); };
-    useEffect(() => { const observerCallback = (entries) => { for (const entry of entries) { if (entry.isIntersecting) { setActiveSection(entry.target.dataset.sectionKey); break; } } }; const observer = new IntersectionObserver(observerCallback, { root: containerRef.current, threshold: 0.3, rootMargin: "-40% 0px -60% 0px" }); const refs = sectionRefs.current; const currentRefs = Object.values(refs); currentRefs.forEach(ref => { if (ref) observer.observe(ref); }); return () => { currentRefs.forEach(ref => { if (ref) observer.unobserve(ref); }); }; }, [characteristics]);
-    return ( <div style={styles.charContainer}><h2 style={styles.sectionTitle}>Характеристики</h2><div style={styles.charGrid}><nav style={styles.charTabs} ref={navRef}>{Object.keys(characteristics).map(key => (<button key={key} onClick={() => handleNavClick(key)} style={activeSection === key ? styles.activeCharTab : styles.charTab}>{key}</button>))}</nav><div style={{ ...styles.charContent, height: containerHeight }} ref={containerRef}>{Object.entries(characteristics).map(([key, items], index) => (<div key={key} ref={el => sectionRefs.current[key] = el} data-section-key={key}><h3 style={styles.charCategoryTitle(index === 0)}>{key}</h3>{items.map(item => (<div key={item.name} style={styles.charRow}><div style={styles.charName}><span style={styles.infoIcon}>ⓘ</span>{item.name}</div><div style={styles.charValue}>{typeof item.value === 'boolean' ? (item.value ? '●' : '○') : item.value}</div></div>))}</div>))}</div></div></div> );
+
+    const handleNavClick = (key) => {
+        setActiveSection(key);
+        sectionRefs.current[key]?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    };
+
+    return (
+        <div style={styles.charContainer}>
+            <h2 style={styles.sectionTitle}>Характеристики</h2>
+            <div style={styles.charGrid}>
+                <nav style={styles.charTabs}>
+                    {Object.keys(characteristics).map(key => (
+                        <button key={key} onClick={() => handleNavClick(key)} style={activeSection === key ? styles.activeCharTab : styles.charTab}>{key}</button>
+                    ))}
+                </nav>
+                <div style={styles.charContent}>
+                    {Object.entries(characteristics).map(([key, items], index) => {
+                        // ✨ ГЛАВНОЕ ИСПРАВЛЕНИЕ:
+                        // Преобразуем данные в массив, если они им не являются
+                        const dataAsArray = Array.isArray(items) 
+                            ? items 
+                            : Object.entries(items).map(([name, value]) => ({ name, value }));
+
+                        return (
+                            <div key={key} ref={el => sectionRefs.current[key] = el} data-section-key={key}>
+                                <h3 style={styles.charCategoryTitle(index === 0)}>{key}</h3>
+                                {dataAsArray.map(item => (
+                                    <div key={item.name} style={styles.charRow}>
+                                        <div style={styles.charName}><span style={styles.infoIcon}>ⓘ</span>{item.name}</div>
+                                        <div style={styles.charValue}>{typeof item.value === 'boolean' ? (item.value ? '●' : '○') : item.value}</div>
+                                    </div>
+                                ))}
+                            </div>
+                        );
+                    })}
+                </div>
+            </div>
+        </div>
+    );
 };
+
 const Accessories = ({ accessories, model }) => ( <div><h2 style={styles.sectionTitle}>Аксессуары {model}</h2><div style={styles.accessoriesGrid}>{accessories.map(acc => (<div key={acc.name} style={styles.accessoryCard}><img src={acc.img} style={styles.accessoryImage} alt={acc.name} /><h4 style={styles.accessoryName}>{acc.name} - {acc.price.toLocaleString('ru-RU')} ₽</h4><p style={styles.accessoryDesc}>{acc.description}</p></div>))}</div></div> );
 
 // ======================= ОСНОВНОЙ КОМПОНЕНТ-КОНСТРУКТОР =======================
@@ -32,13 +94,24 @@ const CarPage = () => {
             setLoading(true);
             setError(null);
             try {
-                // ДЕЛАЕМ РЕАЛЬНЫЙ СЕТЕВОЙ ЗАПРОС К БЭКЕНДУ
                 const response = await fetch(`http://localhost:4000/api/car/${carId}`);
                 if (!response.ok) {
                     throw new Error('Машина не найдена в базе данных');
                 }
                 const data = await response.json();
-                setCar(data);
+                
+                // ✨ ГЛАВНОЕ ИСПРАВЛЕНИЕ: Парсим все JSON-строки в объекты/массивы
+                const parsedData = {
+                    ...data,
+                    images: parseImageString(data.images),
+                    specs: safeJSONParse(data.specs, 'object'),
+                    options: safeJSONParse(data.options, 'array'),
+                    characteristics: safeJSONParse(data.characteristics, 'object'),
+                    accessories: safeJSONParse(data.accessories, 'array'),
+                    colors: parseImageString(data.colors), // Также парсим цвета
+                };
+                
+                setCar(parsedData);
             } catch (err) {
                 console.error("Ошибка при загрузке данных о машине:", err);
                 setError("Не удалось загрузить информацию об автомобиле.");
@@ -48,14 +121,12 @@ const CarPage = () => {
         };
 
         fetchCarData();
-    }, [carId]); // Перезагружаем данные, только если ID в URL изменился
+    }, [carId]);
 
     if (loading) { return <div style={{padding: 50, fontFamily: 'sans-serif'}}>Загрузка...</div>; }
     if (error) { return <div style={{padding: 50, color: 'red', fontFamily: 'sans-serif'}}>{error}</div>; }
     if (!car) { return <div style={{padding: 50, fontFamily: 'sans-serif'}}>Автомобиль не найден.</div> }
 
-    // Данные теперь приходят из БД, поэтому priceRussia и priceChina уже есть,
-    // но на всякий случай оставим проверку.
     const priceRussia = car.price_russia || 0;
     const priceChina = car.price_china || 0;
 
@@ -63,20 +134,20 @@ const CarPage = () => {
         <div style={styles.page}>
             <div style={styles.breadcrumb}>
                 <Link to="/" style={styles.breadcrumbLink}>🏠</Link> / 
-                <Link to={`/cars/${brandSlug}`} style={styles.breadcrumbLink}>{car.brand.toUpperCase()}</Link> / 
-                <Link to={`/cars/${brandSlug}/${modelSlug}`} style={styles.breadcrumbLink}>{car.model.toUpperCase()}</Link> / {carId}
+                <Link to={`/cars/${brandSlug}`} style={styles.breadcrumbLink}>{(car.brand || brandSlug).toUpperCase()}</Link> / 
+                <Link to={`/cars/${brandSlug}/${modelSlug}`} style={styles.breadcrumbLink}>{(car.model || modelSlug).toUpperCase()}</Link> / {carId}
             </div>
 
             <div style={styles.mainGrid}>
-                <ImageGallery images={car.images || []} tags={car.tags || []} id={carId} />
+                <ImageGallery images={car.images} tags={car.tags || []} id={carId} />
                 <div style={styles.detailsColumn}>
                     <h1 style={styles.carTitle}>{car.name}</h1>
-                    <SpecsTable specs={car.specs || {}} />
+                    <SpecsTable specs={car.specs} />
                     <div style={{ margin: '20px 0', borderBottom: '1px solid #eee' }}></div>
                     <div style={styles.colors}>
                         <span style={styles.specKey}>Цвет кузова:</span>
                         <div style={styles.colorSwatches}>
-                            {(car.colors || []).map((color, index) => <div key={index} style={{...styles.colorSwatch, backgroundColor: color}}></div>)}
+                            {car.colors.map((color, index) => <div key={index} style={{...styles.colorSwatch, backgroundColor: color}}></div>)}
                         </div>
                     </div>
                     <div style={styles.priceBlock}>
@@ -88,15 +159,14 @@ const CarPage = () => {
                 </div>
             </div>
             
-            {car.options && <OptionsCarousel options={car.options} />}
-            {car.characteristics && <Characteristics characteristics={car.characteristics} />}
-            {car.accessories && <Accessories accessories={car.accessories} model={car.model} />}
+            <OptionsCarousel options={car.options} />
+            <Characteristics characteristics={car.characteristics} />
+            <Accessories accessories={car.accessories} model={car.model} />
         </div>
     );
 };
 
-// ======================= СТИЛИ =======================
-
+// ======================= СТИЛИ (без изменений) =======================
 const styles = {
     page: { maxWidth: '1280px', margin: '0 auto', padding: '20px', fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif' },
     breadcrumb: { color: '#888', marginBottom: '20px', fontSize: '14px' },
@@ -141,7 +211,7 @@ const styles = {
     charTabs: { display: 'flex', flexDirection: 'column', gap: '5px', position: 'sticky', top: '20px' },
     charTab: { padding: '10px 15px', border: '1px solid #eee', backgroundColor: 'white', color: '#333', borderRadius: '8px', textAlign: 'left', cursor: 'pointer', transition: 'background-color 0.2s, color 0.2s, border-color 0.2s' },
     activeCharTab: { padding: '10px 15px', border: '1px solid #E30016', backgroundColor: '#E30016', color: 'white', borderRadius: '8px', textAlign: 'left', cursor: 'pointer', fontWeight: 'bold', transition: 'background-color 0.2s, color 0.2s' },
-    charContent: { overflowY: 'auto', padding: '0 20px' },
+    charContent: { overflowY: 'auto', padding: '0 20px', minHeight: '300px' },
     charCategoryTitle: (isFirst) => ({ fontSize: '18px', fontWeight: 'bold', color: '#E30016', margin: '0 0 20px 0', paddingTop: isFirst ? 0 : '20px', borderTop: isFirst ? 'none' : '1px solid #eee' }),
     charRow: { display: 'grid', gridTemplateColumns: '1fr 1fr', alignItems: 'center', borderBottom: '1px solid #eee', padding: '12px 0', fontSize: '14px' },
     charName: { color: '#666', display: 'flex', alignItems: 'center', gap: '8px' },
