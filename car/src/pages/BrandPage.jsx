@@ -406,7 +406,7 @@ const BrandPage = () => {
                             onError={(e) => { e.target.onerror = null; e.target.src = ICON_PLACEHOLDER; }}
                         />
                     )}
-                    <span style={styles.pageTitleText}>Купить {displayBrandName}</span>
+                    <span style={styles.pageTitleText}> {displayBrandName}</span>
                 </h1>
                 
                 <ModelList models={modelsGrouped} brandSlug={brandSlug} />

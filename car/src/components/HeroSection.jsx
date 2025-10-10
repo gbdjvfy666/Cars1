@@ -169,7 +169,7 @@ function HomePage() {
 // СТИЛИ 
 // ====================================================================
 const styles = {
-    container: { display: 'flex', fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif', maxWidth: '1280px', margin: '40px auto', padding: '0 24px', gap: '32px', alignItems: 'flex-start' },
+    container: { display: 'flex', fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif', maxWidth: '1380px', margin: '40px auto', padding: '0 24px', gap: '32px', alignItems: 'flex-start' },
     mainContent: { flex: '1 1 67%' },
     header: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '28px' },
     mainTitle: { fontSize: '32px', fontWeight: 'bold', margin: 0, color: '#000', lineHeight: 1.2 },

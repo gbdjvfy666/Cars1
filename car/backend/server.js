@@ -102,23 +102,43 @@ app.get('/api/suggestions', async (req, res) => {
     }
 });
 
-// Основной API роут для поиска со всеми фильтрами
+// Основной API роут для поиска со всеми фильтрами (Обновлен для Admin Dashboard)
 app.get('/api/search', async (req, res) => {
     try {
         const { condition, origin, bodyType, priceFrom, priceTo, engine, searchTerm, drivetrain } = req.query;
         
+        // Устанавливаем лимит по умолчанию 20, но разрешаем фронтенду (например, админке) его переопределять
+        const limit = parseInt(req.query.limit) || 20; 
         const page = parseInt(req.query.page) || 1;
-        const limit = 20;
         const offset = (page - 1) * limit;
+
         let queryParts = [];
         const queryValues = [];
         let valueIndex = 1;
         let baseWhereClause = ' WHERE 1=1';
 
+        // ==========================================================
+        // 🚨 УЛУЧШЕННАЯ ЛОГИКА ПОИСКА ПО ID, NAME, BRAND/MODEL
+        // ==========================================================
         if (searchTerm && searchTerm.trim() !== '') {
-            queryParts.push(`CONCAT(brand, ' ', model) ILIKE $${valueIndex++}`);
-            queryValues.push(`%${searchTerm.trim()}%`);
+            const term = searchTerm.trim();
+            const ilikeValue = `%${term}%`;
+
+            // Поиск по: CONCAT(brand, ' ', model) ИЛИ ID ИЛИ NAME
+            const searchCondition = `(
+                CONCAT(brand, ' ', model) ILIKE $${valueIndex} OR 
+                id ILIKE $${valueIndex} OR 
+                name ILIKE $${valueIndex}
+            )`;
+            
+            queryParts.push(searchCondition);
+            
+            // Все 3 условия используют одно и то же значение: %searchTerm%
+            queryValues.push(ilikeValue);
+            valueIndex++; 
         }
+        // ==========================================================
+
         if (condition === 'new') {
             queryParts.push('mileage = 0');
         } else if (condition === 'used') {
@@ -133,11 +153,9 @@ app.get('/api/search', async (req, res) => {
             
             engineFilters.forEach(eng => {
                 if (eng === 'Гибрид') {
-                    // Ищем по подстроке 'гибрид' без учета регистра
                     hybridSearchTerms.push(`engine_type ILIKE '%' || $${valueIndex++} || '%'`);
                     queryValues.push('гибрид');
                 } else {
-                    // Для остальных - точное совпадение
                     exactMatches.push(`$${valueIndex++}`);
                     queryValues.push(eng);
                 }
@@ -242,6 +260,86 @@ app.get('/api/car/:id', async (req, res) => {
         res.status(500).json({ message: "Ошибка сервера" });
     }
 });
+
+// =================================================================
+// 🚀 МАРШРУТ ДЛЯ ПОЛНОГО РЕДАКТИРОВАНИЯ ДАННЫХ МАШИНЫ (PUT)
+// =================================================================
+app.put('/api/car/:id', async (req, res) => {
+    const { id } = req.params;
+    
+    // 1. Деструктуризация ВСЕХ полей из req.body
+    const { 
+        brand, model, name, price_russia, price_china, year, mileage, 
+        engine_type, drivetrain, body_type, origin, 
+        images, options, characteristics, accessories, other_trims, colors, 
+        source_url, emission_standard, engine_spec_type, displacement, max_power_ps, 
+        transmission, steering_position, max_torque_nm, fuel_type, seats, 
+        brake_system, tire_size, airbags, sunroof, roof_rack, body_structure, 
+        max_speed_kmh, battery_type, charging_time, dimensions_lwh, tpms, 
+        rear_camera, seat_color, driver_seat_adjustment, copilot_seat_adjustment, 
+        touch_screen, air_conditioner, rear_light, daytime_light, specs 
+    } = req.body;
+    
+    // ⚠️ Базовая проверка: убедитесь, что ключевые поля не пустые
+    if (!name || price_russia === undefined) {
+        return res.status(400).json({ message: 'Необходимо указать название и цену.' });
+    }
+
+    try {
+        // 2. SQL-запрос для обновления 46 столбцов
+        const query = `
+            UPDATE cars
+            SET 
+                brand = $1, model = $2, name = $3, price_russia = $4, price_china = $5, year = $6, mileage = $7, 
+                engine_type = $8, drivetrain = $9, body_type = $10, origin = $11, 
+                images = $12::jsonb, options = $13::jsonb, characteristics = $14::jsonb, accessories = $15::jsonb, 
+                other_trims = $16::jsonb, colors = $17::jsonb, 
+                source_url = $18, emission_standard = $19, engine_spec_type = $20, displacement = $21, 
+                max_power_ps = $22, transmission = $23, steering_position = $24, max_torque_nm = $25, 
+                fuel_type = $26, seats = $27, brake_system = $28, tire_size = $29, airbags = $30, 
+                sunroof = $31, roof_rack = $32, body_structure = $33, max_speed_kmh = $34, 
+                battery_type = $35, charging_time = $36, dimensions_lwh = $37, tpms = $38, rear_camera = $39, 
+                seat_color = $40, driver_seat_adjustment = $41, copilot_seat_adjustment = $42, 
+                touch_screen = $43, air_conditioner = $44, rear_light = $45, daytime_light = $46, 
+                specs = $47::jsonb
+            WHERE id = $48
+            RETURNING *;
+        `;
+        
+        // 3. Массив значений (47 колонок + ID = 48 параметров). 
+        // Поля JSONB ОБЯЗАТЕЛЬНО должны быть преобразованы в строку с помощью JSON.stringify().
+        const values = [
+            brand, model, name, price_russia, price_china, year, mileage, engine_type, drivetrain, body_type, 
+            origin, JSON.stringify(images), JSON.stringify(options), JSON.stringify(characteristics), 
+            JSON.stringify(accessories), JSON.stringify(other_trims), JSON.stringify(colors), source_url, 
+            emission_standard, engine_spec_type, displacement, max_power_ps, transmission, steering_position, 
+            max_torque_nm, fuel_type, seats, brake_system, tire_size, airbags, sunroof, roof_rack, 
+            body_structure, max_speed_kmh, battery_type, charging_time, dimensions_lwh, tpms, rear_camera, 
+            seat_color, driver_seat_adjustment, copilot_seat_adjustment, touch_screen, air_conditioner, 
+            rear_light, daytime_light, JSON.stringify(specs), 
+            id // $48
+        ];
+
+        const result = await pool.query(query, values);
+
+        if (result.rowCount === 0) {
+            return res.status(404).json({ message: `Машина с ID ${id} не найдена.` });
+        }
+
+        res.json({ 
+            message: '✅ Данные успешно обновлены', 
+            car: result.rows[0] // Отправляем обновленную запись обратно для подтверждения
+        });
+
+    } catch (error) {
+        console.error(`❌ Ошибка при обновлении машины с ID ${id}:`, error);
+        res.status(500).json({ 
+            error: 'Ошибка сервера при обновлении данных.', 
+            details: error.message 
+        });
+    }
+});
+
 
 // Запуск сервера
 app.listen(port, () => {
