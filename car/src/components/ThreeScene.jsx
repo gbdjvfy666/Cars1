@@ -7,17 +7,9 @@ import { SimplexNoise } from 'three/examples/jsm/math/SimplexNoise.js';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import * as TWEEN from '@tweenjs/tween.js';
 
-// ПУТИ К ФАЙЛАМ (Предполагается, что они находятся в ../assets/)
 import NSBH_3d_logo from '../assets/NSBH_4d_logo.glb';
-import Photo_Chizra from '../assets/1.png'; // Флакон 1
-import Photo_Velora from '../assets/2.png'; // Флакон 2
-import Photo_Skaarj from '../assets/3.png'; // Флакон 3
-import Photo_Vortex from '../assets/4.png'; // Флакон 4
 
-// Массив путей для загрузки в атлас (важен порядок!)
-const logoFiles = [Photo_Chizra, Photo_Velora, Photo_Skaarj, Photo_Vortex];
-
-// Шейдер для шума (оставлен чистым)
+// ОЧИЩЕННЫЙ noiseShader
 const noiseShader = `
 vec4 permute(vec4 x){return mod(((x*34.0)+1.0)*x, 289.0);}
 float permute(float x){return floor(mod(((x*34.0)+1.0)*x, 289.0));}
@@ -34,8 +26,8 @@ vec4 grad4(float j, vec4 ip){
 }
 float snoise(vec4 v){
   const vec2 C = vec2( 0.138196601125010504, 0.309016994374947451);
-  vec4 i = floor(v + dot(v, C.yyyy) );
-  vec4 x0 = v - i + dot(i, C.xxxx);
+  vec4 i  = floor(v + dot(v, C.yyyy) );
+  vec4 x0 = v -   i + dot(i, C.xxxx);
   vec4 i0;
   vec3 isX = step( x0.yzw, x0.xxx );
   vec3 isYZ = step( x0.zww, x0.yyz );
@@ -60,7 +52,7 @@ float snoise(vec4 v){
             + i.y + vec4(i1.y, i2.y, i3.y, 1.0 ))
             + i.x + vec4(i1.x, i2.x, i3.x, 1.0 ));
   vec4 ip = vec4(1.0/294.0, 1.0/49.0, 1.0/7.0, 0.0) ;
-  vec4 p0 = grad4(j0, ip);
+  vec4 p0 = grad4(j0,   ip);
   vec4 p1 = grad4(j1.x, ip);
   vec4 p2 = grad4(j1.y, ip);
   vec4 p3 = grad4(j1.z, ip);
@@ -72,11 +64,11 @@ float snoise(vec4 v){
   p3 *= norm.w;
   p4 *= taylorInvSqrt(dot(p4,p4));
   vec3 m0 = max(0.6 - vec3(dot(x0,x0), dot(x1,x1), dot(x2,x2)), 0.0);
-  vec2 m1 = max(0.6 - vec2(dot(x3,x3), dot(x4,x4) ), 0.0);
+  vec2 m1 = max(0.6 - vec2(dot(x3,x3), dot(x4,x4)               ), 0.0);
   m0 = m0 * m0;
   m1 = m1 * m1;
   return 49.0 * ( dot(m0*m0, vec3( dot( p0, x0 ), dot( p1, x1 ), dot( p2, x2 )))
-            + dot(m1*m1, vec2( dot( p3, x3 ), dot( p4, x4 ) ) ) ) ;
+                  + dot(m1*m1, vec2( dot( p3, x3 ), dot( p4, x4 ) ) ) ) ;
 }`;
 
 const fragrances = [
@@ -89,7 +81,6 @@ const fragrances = [
 const ThreeScene = () => {
     const mountRef = useRef(null);
     const [popup, setPopup] = useState({ visible: false, text: '' });
-    const [bottleController, setBottleController] = useState(null);
 
     useEffect(() => {
         let animationFrameId;
@@ -117,38 +108,35 @@ const ThreeScene = () => {
         const envMap = pmremGenerator.fromScene(roomEnv, 0.04).texture;
         scene.environment = envMap;
         
+        // Камера и центр вращения
         camera.position.set(0, 3.5, 12);
         const controls = new OrbitControls(camera, renderer.domElement);
-        controls.target.set(0, 3.5, 0);
+        controls.target.set(0, 3.5, 0); // Центр вращения камеры
         controls.enableDamping = true;
         controls.minPolarAngle = controls.maxPolarAngle = Math.PI * 0.5;
         controls.minDistance = 7;
         controls.maxDistance = 12;
         controls.enablePan = false;
-        controls.enableZoom = false; 
+        controls.enableZoom = false;
         
         const light = new THREE.DirectionalLight(0xffffff, Math.PI * 1.75);
         light.position.set(0.5, 1, 1).setLength(50);
         scene.add(light, new THREE.AmbientLight(0xffffff, Math.PI * 0.25));
 
         const gu = { time: { value: 0 } };
-        let uModel, bottle;
+        let uModel, bottle, bottleController;
 
         const init = async () => {
-            const textureLoader = new THREE.TextureLoader();
-            const loadedLogos = await Promise.all(
-                logoFiles.map(file => textureLoader.loadAsync(file))
-            );
-            
+            const font = new FontFace("LibreBarcode128Text", "url(https://fonts.gstatic.com/s/librebarcode128text/v29/fdNv9tubt3ZEnz1Gu3I4-zppwZ9CWZ16Z0w5QVrS6Q.woff2)");
+            await font.load();
+            document.fonts.add(font);
+
             const nameTexture = (() => {
-                const c = document.createElement("canvas"); 
-                c.width = 512; 
-                c.height = 2048;
+                const c = document.createElement("canvas"); c.width = 1024; c.height = 2048;
+                let u = val => val * (c.height / fragrances.length) * 0.01;
                 const ctx = c.getContext("2d");
-                const singleHeight = c.height / fragrances.length;
-                loadedLogos.forEach((logoTexture, i) => {
-                    ctx.drawImage(logoTexture.image, 0, i * singleHeight, c.width, singleHeight);
-                });
+                ctx.fillStyle = "#fff"; ctx.font = `${u(90)}px LibreBarcode128Text`; ctx.textAlign = "center"; ctx.textBaseline = "middle";
+                fragrances.forEach((f, fIdx) => { ctx.fillText(f.name, c.width * 0.5, c.height - (0.5 + fIdx) * u(100)); });
                 const tex = new THREE.CanvasTexture(c);
                 tex.anisotropy = renderer.capabilities.getMaxAnisotropy();
                 return tex;
@@ -167,6 +155,7 @@ const ThreeScene = () => {
                             shader.uniforms.time = gu.time;
                             shader.uniforms.texNames = { value: nameTexture };
                             
+                            // ОЧИЩЕННЫЙ VERTEX SHADER
                             shader.vertexShader = `
                                 varying vec3 vPos;
                                 varying vec2 vUv;
@@ -177,64 +166,39 @@ const ThreeScene = () => {
                                 `#include <begin_vertex>\n vPos = position;\n vUv = uv;\n vIID = float(gl_InstanceID);`
                             );
                             
+                            // ОЧИЩЕННЫЙ FRAGMENT SHADER
                             shader.fragmentShader = `
                                 uniform float time;
                                 uniform sampler2D texNames;
                                 varying vec3 vPos;
                                 varying vec2 vUv;
                                 varying float vIID;
+                                vec3 toLuminance(vec3 col, float destL){float curL = 0.2126*col.r+0.7152*col.g+0.0722*col.b;float mult = destL/curL;return col*mult;}
                                 ${noiseShader}
                                 ${shader.fragmentShader}
                             `;
                             
-                            shader.fragmentShader = shader.fragmentShader.replace(
-                                '#include <logdepthbuf_fragment>',
-                                `
-                                #include <logdepthbuf_fragment>
-                                
-                                float iID = floor(vIID + 0.1);
-                                float t = time * 0.5;
+                            const replaceAndAddLine = (full, chunk, code) => full.replace(chunk, `${chunk}\n${code}`);
 
-                                float bfNoise = snoise(vec4(vPos - vec3(0.0, t + iID * 100.0, 0.0), t));
-                                bfNoise = pow(abs(bfNoise), 0.875);
-                                bfNoise = 1.0 - bfNoise;
-                                bfNoise *= 1.0 - smoothstep(0.0, 3.5, vPos.y);
-
-                                vec2 nameUV = vec2((vUv.x - 0.5) * 3.0 + 0.5, (3.5 - vPos.y) * -3.5 * 0.5 + 0.5);
-                                vec2 finalUV = vec2(nameUV.x, (iID + nameUV.y) * 0.25);
-                                vec4 photoTexture = texture(texNames, finalUV);
-                                
-                                vec2 absNameUV = abs(nameUV - 0.5);
-                                float limitF = 1.0 - step(0.5, max(absNameUV.x, absNameUV.y));
-                                float photoAlpha = photoTexture.a * limitF;
-                                `
-                            );
+                            shader.fragmentShader = replaceAndAddLine(shader.fragmentShader, '#include <roughnessmap_fragment>', `
+                                float t=time*0.5; float iID=floor(vIID+0.1); float ffVal=gl_FrontFacing==true?1.:0.;
+                                float lidHeight=7.*2./3.; float fHeight=smoothstep(lidHeight-0.5,lidHeight+0.5,vPos.y);
+                                roughnessFactor*=fHeight; float bfNoise=snoise(vec4(vPos-vec3(0,t+iID*100.,0),t));
+                                bfNoise=pow(abs(bfNoise),0.875); bfNoise=1.-bfNoise; bfNoise*=1.-smoothstep(0.,3.5,vPos.y);
+                                roughnessFactor=max(roughnessFactor,bfNoise*roughness); vec2 nameUV=vec2((vUv.x-0.5)*3.+0.5,(3.5-vPos.y)*-3.5*0.5+0.5);
+                                vec2 finalUV=vec2(nameUV.x,(iID+nameUV.y)*0.25); float nameF=texture(texNames,finalUV).g;
+                                vec2 absNameUV=abs(nameUV-0.5); float limitF=1.-step(0.5,max(absNameUV.x,absNameUV.y));
+                                float nameFullF=nameF*limitF; roughnessFactor=max(roughnessFactor,nameFullF*ffVal);
+                            `);
                             
-                            shader.fragmentShader = shader.fragmentShader.replace(
-                                'float transmission = material.transmission;',
-                                'float transmission = material.transmission; transmission *= (1.0 - photoAlpha);'
-                            );
-
-                            shader.fragmentShader = shader.fragmentShader.replace(
-                                '#include <color_fragment>',
-                                `#include <color_fragment>\n diffuseColor.rgb = mix(diffuseColor.rgb, photoTexture.rgb, photoAlpha);`
-                            );
-
-                            // --- ИСПРАВЛЕНИЕ ЗДЕСЬ ---
-                            shader.fragmentShader = shader.fragmentShader.replace(
-                                '#include <roughnessmap_fragment>',
-                                `
-                                // Сначала объявляем переменную, как в оригинальном шейдере
-                                float roughnessFactor = roughness; 
-
-                                // Теперь мы можем её безопасно изменять
-                                float lidHeight = 7.0 * 2.0 / 3.0;
-                                float fHeight = smoothstep(lidHeight - 0.5, lidHeight + 0.5, vPos.y);
-                                roughnessFactor *= fHeight;
-                                float glassRoughness = max(roughnessFactor, bfNoise * roughness);
-                                roughnessFactor = mix(glassRoughness, 1.0, photoAlpha);
-                                `
-                            );
+                            // ИСПРАВЛЕНИЕ: metalnessFactor вместо metalnessmap_fragment
+                            shader.fragmentShader = replaceAndAddLine(shader.fragmentShader, '#include <metalnessmap_fragment>', `metalnessFactor=max(metalnessFactor,nameFullF*ffVal);`);
+                            
+                            shader.fragmentShader = replaceAndAddLine(shader.fragmentShader, '#include <emissivemap_fragment>', `
+                                vec3 emissiveBase=mix(toLuminance(diffuseColor.rgb,0.5),toLuminance(diffuseColor.rgb,0.75),smoothstep(0.1,0.2,pow(bfNoise,2.)));
+                                vec3 emissiveColorVal=mix(emissiveBase,vec3(1),nameFullF)*ffVal; float emissiveVal=max(nameFullF,bfNoise);
+                                totalEmissiveRadiance=emissiveColorVal*emissiveVal;
+                            `);
                         }
                     });
                     super(g, m, fragrances.length);
@@ -257,8 +221,10 @@ const ThreeScene = () => {
             const MODEL_SCALE = 1.0; 
             
             const gltf = await new GLTFLoader().loadAsync(NSBH_3d_logo); 
+            let loadedModel = gltf.scene;
+
             let modelMesh = null;
-            gltf.scene.traverse((child) => {
+            loadedModel.traverse((child) => {
                 if (child.isMesh && modelMesh === null) {
                     modelMesh = child;
                 }
@@ -268,40 +234,55 @@ const ThreeScene = () => {
                 class MyLogoModel extends THREE.Object3D {
                     constructor() { 
                         super(); 
+                        
                         modelMesh.geometry.computeVertexNormals();
                         modelMesh.geometry.scale(MODEL_SCALE, MODEL_SCALE, MODEL_SCALE);
+                        
+                        // 1. Центрируем геометрию
                         modelMesh.geometry.center(); 
+                        
+                        // 2. Корректируем ориентацию. 
+                        // Поворачиваем на +90 градусов по оси X, чтобы модель стояла вертикально.
                         modelMesh.rotation.x = Math.PI * 0.5;
+                        
                         modelMesh.material = new THREE.MeshStandardMaterial({ 
                             color: new THREE.Color(0x333333), 
                             roughness: .2, 
                             metalness: 1, 
                             envMap 
                         }); 
+                        
+                        // ❌ УДАЛЕНО: modelMesh.position.y = 3.5;
+                        
                         this.model = modelMesh; 
                         this.add(modelMesh); 
                     }
+                    // Вращение по оси Z
                     update(t) { 
-                        this.model.rotation.z += 0.005; 
+                        this.model.rotation.z += 0.005; // Вращение вокруг оси Z
                     }
                 }
                 uModel = new MyLogoModel();
+                
+                // ⭐️ НАСТРОЙКА ПОЗИЦИИ ЛОГОТИПА
+                // Измените эти значения (X, Y, Z), чтобы переместить логотип.
                 uModel.position.set(-0.8, 3.5, 0.8);
+                
                 scene.add(uModel);
             } else {
-                console.error("Не удалось найти Mesh-объект в загруженной GLB-модели.");
+                console.error("Не удалось найти Mesh-объект в загруженной GLB-модели NSBH_3d_logo. Проверьте экспорт.");
             }
 
+            // Создание и добавление флаконов
             bottle = new Bottle();
             scene.add(bottle);
 
-            const controller = new BottleController(bottle, controls, 
+            bottleController = new BottleController(bottle, controls, 
                 (text) => setPopup({ visible: true, text }),
                 () => setPopup({ visible: false, text: '' })
             );
-            setBottleController(controller);
             
-            currentMount.addEventListener("dblclick", controller.fadeIn.bind(controller));
+            currentMount.addEventListener("dblclick", bottleController.fadeIn.bind(bottleController));
 
             const clock = new THREE.Clock();
             const animate = () => {
@@ -347,12 +328,7 @@ const ThreeScene = () => {
             <div ref={mountRef} style={styles.mount} />
             {popup.visible && (
                 <div style={styles.container}>
-                    <button 
-                        style={styles.btnClose} 
-                        onClick={() => { if (bottleController) bottleController.fadeOut(); }}
-                    >
-                        X
-                    </button>
+                    <button style={styles.btnClose} onClick={() => setPopup({ visible: false, text: '' })}>X</button>
                     <span dangerouslySetInnerHTML={{ __html: popup.text }}></span>
                 </div>
             )}
@@ -361,10 +337,22 @@ const ThreeScene = () => {
 };
 
 const styles = {
-    wrapper: { width: '100%', height: '600px', position: 'relative', overflow: 'hidden', fontFamily: '"Orbitron", sans-serif' },
-    mount: { width: '100%', height: '100%' },
-    container: { display: 'block', position: 'absolute', bottom: '5vh', left: '50%', transform: 'translate(-50%, 0)', height: '17vh', aspectRatio: '3 / 1', background: 'rgba(0, 0, 0, 0.5)', clipPath: 'polygon(10% 0, 100% 0, 90% 100%, 0 100%)', padding: '5vh 10vh', color: 'white', fontOpticalSizing: 'auto', fontStyle: 'normal', fontSize: '3.5vh', boxSizing: 'border-box' },
-    btnClose: { position: 'absolute', width: '5vh', height: '5vh', top: '0.5vh', right: '3vh', border: '0.25vh solid white', borderRadius: '1vh', background: 'transparent', color: 'white', padding: 0, fontFamily: '"Orbitron", sans-serif', fontOpticalSizing: 'auto', fontStyle: 'normal', fontSize: '4vh', cursor: 'pointer' },
+    wrapper: {
+        width: '100%', height: '600px', position: 'relative', overflow: 'hidden', fontFamily: '"Orbitron", sans-serif',
+    },
+    mount: {
+        width: '100%', height: '100%',
+    },
+    container: {
+        display: 'block', position: 'absolute', bottom: '5vh', left: '50%', transform: 'translate(-50%, 0)', height: '17vh',
+        aspectRatio: '3 / 1', background: 'rgba(0, 0, 0, 0.5)', clipPath: 'polygon(10% 0, 100% 0, 90% 100%, 0 100%)',
+        padding: '5vh 10vh', color: 'white', fontOpticalSizing: 'auto', fontStyle: 'normal', fontSize: '3.5vh', boxSizing: 'border-box',
+    },
+    btnClose: {
+        position: 'absolute', width: '5vh', height: '5vh', top: '0.5vh', right: '3vh', border: '0.25vh solid white',
+        borderRadius: '1vh', background: 'transparent', color: 'white', padding: 0, fontFamily: '"Orbitron", sans-serif',
+        fontOpticalSizing: 'auto', fontStyle: 'normal', fontSize: '4vh', cursor: 'pointer',
+    },
 };
 
 export default ThreeScene;
