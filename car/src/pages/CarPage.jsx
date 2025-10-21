@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useParams, Link } from 'react-router-dom';
+import Breadcrumbs from '../components/Breadcrumbs'; // 1. Импортируем компонент
 
 // ======================= ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ =======================
 
@@ -101,48 +102,34 @@ const OptionsCarousel = ({ options }) => {
 };
 
 const Characteristics = ({ characteristics }) => {
-    // 1. Нормализуем данные
     const rawCharacteristics = characteristics || {};
     const charKeys = Object.keys(rawCharacteristics);
-
-    // Если нет ключей, возвращаем null
     if (charKeys.length === 0) return null;
 
-    // 2. Определяем, является ли структура "многоуровневой" (с разделами)
-    // Мы считаем ее многоуровневой, если первый ключ указывает на еще один объект.
     const isSectioned = charKeys.length > 0 && 
                          typeof rawCharacteristics[charKeys[0]] === 'object' && 
                          !Array.isArray(rawCharacteristics[charKeys[0]]) && 
                          Object.keys(rawCharacteristics[charKeys[0]]).length > 0;
 
-    // Если структура не секционная, создаем одну секцию "Общие"
     const normalizedCharacteristics = isSectioned 
         ? rawCharacteristics 
         : { 'Общие характеристики': rawCharacteristics };
         
     const finalKeys = Object.keys(normalizedCharacteristics);
-    
-    // Если после нормализации пусто (например, был пустой массив), выходим
     if (finalKeys.length === 0) return null;
 
-    // Инициализируем активный раздел первым ключом
     const [activeSection, setActiveSection] = useState(finalKeys[0]);
 
-    // Обновляем активный раздел, если данные изменились и старого раздела больше нет
     useEffect(() => {
         if (!finalKeys.includes(activeSection)) {
             setActiveSection(finalKeys[0]);
         }
     }, [finalKeys, activeSection]);
 
-    // Функция для рендеринга содержимого раздела
     const renderSectionContent = (sectionName, items) => {
-        // Убедимся, что items - это объект, который можно перебрать
         const itemsObject = typeof items === 'object' && items !== null ? items : {};
-        
-        // Преобразуем объект в массив {name, value} для рендеринга
         const dataAsArray = Object.entries(itemsObject)
-            .filter(([, value]) => value !== null && value !== undefined && value !== '') // Убираем пустые значения
+            .filter(([, value]) => value !== null && value !== undefined && value !== '')
             .map(([name, value]) => ({ name, value }));
             
         if (dataAsArray.length === 0) return <div>Нет данных для отображения в этом разделе.</div>;
@@ -164,7 +151,6 @@ const Characteristics = ({ characteristics }) => {
         <div style={styles.charContainer}>
             <h2 style={styles.sectionTitle}>Характеристики</h2>
             <div style={styles.charGrid}>
-                {/* Левая панель с вкладками */}
                 <nav style={styles.charTabs}>
                     {finalKeys.map(key => (
                         <button 
@@ -176,7 +162,6 @@ const Characteristics = ({ characteristics }) => {
                         </button>
                     ))}
                 </nav>
-                {/* Правая панель с содержимым */}
                 <div style={styles.charContent}>
                     {normalizedCharacteristics[activeSection] &&
                         renderSectionContent(activeSection, normalizedCharacteristics[activeSection])
@@ -186,8 +171,6 @@ const Characteristics = ({ characteristics }) => {
         </div>
     );
 };
-
-
 
 const Accessories = ({ accessories, model }) => {
     if (!accessories || accessories.length === 0) return null;
@@ -256,7 +239,6 @@ const CarPage = () => {
     const priceRussia = car.price_russia || 0;
     const priceChina = car.price_china || 0;
     
-    // ИЗМЕНЕНО: Динамически собираем объект для таблицы основных характеристик
     const specLabels = {
         year: 'Год',
         body_type: 'Тип кузова',
@@ -275,13 +257,18 @@ const CarPage = () => {
         }
     }
 
+    // 2. Формируем массив для хлебных крошек
+    const breadcrumbItems = [
+        { label: car.brand || brandSlug, to: `/cars/${brandSlug}` },
+        { label: car.model || modelSlug, to: `/cars/${brandSlug}/${modelSlug}` },
+        // Последний элемент будет неактивным текстом
+        { label: car.name || carId, to: `/cars/${brandSlug}/${modelSlug}/${carId}` }
+    ];
+
     return (
         <div style={styles.page}>
-            <div style={styles.breadcrumb}>
-                <Link to="/" style={styles.breadcrumbLink}>🏠</Link> / 
-                <Link to={`/cars/${brandSlug}`} style={styles.breadcrumbLink}>{(car.brand || brandSlug).toUpperCase()}</Link> / 
-                <Link to={`/cars/${modelSlug}`} style={styles.breadcrumbLink}>{(car.model || modelSlug).toUpperCase()}</Link> / {car.id}
-            </div>
+            {/* 3. Используем компонент Breadcrumbs вместо старой разметки */}
+            <Breadcrumbs items={breadcrumbItems} />
 
             <div style={styles.mainGrid}>
                 <ImageGallery images={car.images} tags={car.tags} id={car.id} />
@@ -316,9 +303,8 @@ const CarPage = () => {
 // ======================= СТИЛИ =======================
 const styles = {
     page: { maxWidth: '1280px', margin: '0 auto', padding: '20px', fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif' },
-    breadcrumb: { color: '#888', marginBottom: '20px', fontSize: '14px' },
-    breadcrumbLink: { textDecoration: 'none', color: '#555' },
-    mainGrid: { display: 'grid', gridTemplateColumns: '55% 45%', gap: '40px', alignItems: 'flex-start' },
+
+    mainGrid: { display: 'grid', gridTemplateColumns: '55% 45%', gap: '40px', alignItems: 'flex-start', marginTop: '20px' },
     detailsColumn: { paddingLeft: '20px' },
     galleryContainer: { display: 'flex', flexDirection: 'column', gap: '10px' },
     mainImageWrapper: { borderRadius: '12px', overflow: 'hidden', position: 'relative' },

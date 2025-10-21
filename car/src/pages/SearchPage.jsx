@@ -4,6 +4,9 @@ import { Link, useLocation } from 'react-router-dom';
 import { useAutocomplete } from '../hooks/useAutocomplete'; 
 import { SmartSearchInput } from '../components/SmartSearchInput';
 import { DropdownFilter } from '../components/DropdownFilter';
+import Breadcrumbs from '../components/Breadcrumbs';
+import CarCard from '../components/CarCard';
+
 import '../components/SmartSearchInput.css';
 import '../components/DropdownFilter.css';
 
@@ -68,27 +71,6 @@ const parseQuery = (search) => {
     return initialFilters;
 }
 
-// ИЗМЕНЕНИЕ ЗДЕСЬ
-const CarCard = ({ car }) => {
-    const brandSlug = car.brand ? car.brand.toLowerCase().replace(/ /g, '-') : 'brand';
-    const modelSlug = car.model ? car.model.toLowerCase().replace(/ /g, '-') : 'model';
-
-    return (
-        <Link to={`/cars/${brandSlug}/${modelSlug}/${car.id}`} style={styles.cardLink}>
-            <div style={styles.cardImagePlaceholder}><span style={styles.cardImageText}>Фото {car.brand || 'АВТО'}</span></div>
-            <div style={styles.cardBody}>
-                <h3 style={styles.cardTitle}>{car.brand || 'Автомобиль'} {car.model || 'Модель'}</h3>
-                <div style={styles.cardPrice}>{(car.price_russia || 0).toLocaleString('ru-RU')} ₽</div>
-                <div style={styles.cardInfo}>
-                    <span>{car.year || '—'}</span>
-                    <span>{car.mileage !== undefined ? (car.mileage > 0 ? `${(car.mileage / 1000).toFixed(0)} тыс. км` : 'Новый') : '—'}</span>
-                    <span>{car.engine_type || '—'}</span>
-                </div>
-            </div>
-        </Link>
-    );
-};
-
 const SearchPage = () => {
     const location = useLocation();
     const [currentFilters, setCurrentFilters] = useState(() => parseQuery(location.search));
@@ -105,23 +87,38 @@ const SearchPage = () => {
         setCurrentFilters(prev => ({ ...prev, searchTerm: autocomplete.inputValue }));
     }, [autocomplete.inputValue]);
 
+    // 👇👇👇 ИСПРАВЛЕНИЕ ЛОГИКИ ЗДЕСЬ 👇👇👇
     const generateSearchQuery = (filters, currentPage) => {
         const params = new URLSearchParams();
         params.set('page', currentPage);
+
         const append = (key, value) => {
             if (value !== undefined && value !== null && value !== '' && (!Array.isArray(value) || value.length > 0)) {
-                if (Array.isArray(value)) value.forEach(v => params.append(key, v));
-                else params.set(key, value);
+                if (Array.isArray(value)) {
+                    value.forEach(v => params.append(key, v));
+                } else {
+                    params.set(key, value);
+                }
             }
         };
+
+        // Возвращаем правильные имена параметров, которые ожидает бэкенд
         append('searchTerm', filters.searchTerm);
-        if (filters.condition !== 'all') append('condition', filters.condition);
+        if (filters.condition !== 'all') {
+            append('condition', filters.condition);
+        }
         append('origin', filters.origin);
-        append('engine', filters.engineType);
+        append('engineType', filters.engineType); // Было 'engine'
         append('bodyType', filters.bodyType);
         append('drivetrain', filters.drivetrain);
-        if (filters.priceFrom > 0) append('priceFrom', filters.priceFrom);
-        if (filters.priceTo > 0 && filters.priceTo < 30000000) append('priceTo', filters.priceTo);
+        
+        if (filters.priceFrom > 0) {
+            append('priceFrom', filters.priceFrom);
+        }
+        if (filters.priceTo > 0 && filters.priceTo < 30000000) {
+            append('priceTo', filters.priceTo);
+        }
+
         return params.toString();
     };
 
@@ -170,9 +167,11 @@ const SearchPage = () => {
     
     const formatPrice = p => (p > 0 && p < 30000000) ? p.toLocaleString('ru-RU') : '';
 
+    const breadcrumbItems = [{ label: 'Поиск', to: '/search' }];
+
     return (
         <div style={styles.page}>
-            <div style={styles.breadcrumb}>🏠 / Поиск</div>
+            <Breadcrumbs items={breadcrumbItems} />
             <h1 style={styles.pageTitle}>Поиск объявлений</h1>
             <div style={styles.contentWrapper}>
                 <div style={styles.sideFilterBar}>
@@ -209,9 +208,10 @@ const SearchPage = () => {
 };
 
 const tabButton = { padding: '8px 15px', fontSize: '14px', border: '1px solid #d7d8dc', backgroundColor: '#fff', borderRadius: '20px', cursor: 'pointer', color: '#4c4a55', fontWeight: 500, transition: 'all 0.2s' };
+
 const styles = { 
     page: { fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif', maxWidth: '1280px', margin: '0 auto', padding: '20px' },
-    breadcrumb: { color: '#888', marginBottom: '20px', fontSize: '14px' },
+    pageTitle: { fontSize: '28px', fontWeight: 'bold', margin: '10px 0 20px 0' },
     contentWrapper: { display: 'flex', gap: '32px', alignItems: 'flex-start' },
     applyButton: { width: '100%', padding: '10px', marginTop: '10px', fontSize: '16px', fontWeight: 'bold', backgroundColor: '#E30016', color: '#fff', border: 'none', borderRadius: '8px', cursor: 'pointer', transition: 'background-color 0.2s' },
     sideFilterBar: { flex: '0 0 280px', padding: '20px', backgroundColor: '#f9f9f9', borderRadius: '12px', border: '1px solid #eee', position: 'sticky', top: '20px' },
@@ -227,13 +227,6 @@ const styles = {
     resultsGrid: { display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '24px' },
     loadMoreContainer: { textAlign: 'center', marginTop: '30px' },
     loadMoreButton: { padding: '12px 30px', fontSize: '16px', fontWeight: 'bold', backgroundColor: '#E30016', color: '#fff', border: 'none', borderRadius: '8px', cursor: 'pointer', transition: 'background-color 0.2s' },
-    cardLink: { textDecoration: 'none', display: 'block', borderRadius: '12px', overflow: 'hidden', border: '1px solid #eee', transition: 'box-shadow 0.2s, transform 0.2s' },
-    cardImagePlaceholder: { height: '180px', backgroundColor: '#f0f0f0', display: 'flex', alignItems: 'center', justifyContent: 'center' },
-    cardImageText: { color: '#999', fontSize: '14px' },
-    cardBody: { padding: '15px' },
-    cardTitle: { fontSize: '18px', fontWeight: 'bold', color: '#333', margin: '0 0 8px 0' },
-    cardPrice: { fontSize: '22px', fontWeight: '800', color: '#E30016', marginBottom: '10px' },
-    cardInfo: { display: 'flex', flexWrap: 'wrap', gap: '5px 10px', fontSize: '13px', color: '#666' },
     noResults: { gridColumn: '1 / -1', textAlign: 'center', padding: '50px 0', fontSize: '20px', color: '#666', backgroundColor: '#fff', borderRadius: '12px', marginTop: '20px', border: '1px solid #eee' }
 };
 
