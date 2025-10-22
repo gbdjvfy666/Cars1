@@ -92,12 +92,11 @@
 }
 .outerWindow {
     background: none;
-    width: calc(var(--init-size) * 0.83);
-    /* ИЗМЕНЕНО: Делаем контейнер значительно выше, убрав деление */
+    /* ИЗМЕНЕНО: Возвращаем ширину панели к исходному значению */
+    width: calc(var(--init-size) * 0.83); 
     height: calc(var(--init-size) * 0.45); 
     overflow: hidden;
-    /* ИЗМЕНЕНО: Скорректирована позиция */
-    top: 35%; 
+    top: 30%; 
     bottom: unset;
 }
 .window {
@@ -115,18 +114,31 @@
 }
 
 .invert .windowRounded{
-    background: linear-gradient(0deg, rgba(0,0,0,0.7) 48%, rgba(255,255,255,0) 57%, rgba(255,255,255,0) 100%), rgb(202, 216, 228);
+    /* НОВЫЙ ГРАДИЕНТ для придания объема поверхности панели */
+    background: 
+      linear-gradient(180deg, rgba(0,0,0,0.15) 0%, rgba(255,255,255,0) 15%, rgba(255,255,255,0) 85%, rgba(0,0,0,0.1) 100%),
+    /* Старый градиент, отвечающий за отражение */
+      linear-gradient(0deg, rgba(0,0,0,0.7) 48%, rgba(255,255,255,0) 57%, rgba(255,255,255,0) 100%), 
+    /* Базовый цвет панели */
+      rgb(202, 216, 228);
+
     box-shadow: 
     -2px 2px 1px 0px rgba(0, 0, 0, 0.4), 
     2px -2px 2px 0 rgba(108, 115, 129, 0.2), 
     inset -4px -3px 12px 1px rgba(152, 243, 248, 0.1),
     inset 2px 3px 7px 1px rgba(0, 0, 0, 0.5);
 }
-
 .invert .window {
     box-shadow: 
+    /* Внешние тени, которые были раньше */
     2px -2px 1px 0 rgba(108, 115, 129, 0.4), 
-    -2px 4px 3px 0px rgba(0, 0, 0, 0.4);
+    -2px 4px 3px 0px rgba(0, 0, 0, 0.4),
+    
+    /* НОВАЯ ТЕНЬ: Создает эффект глубины сверху */
+    inset 0px 8px 10px -5px rgba(0, 0, 0, 0.6),
+
+    /* НОВЫЙ БЛИК: Легкий светлый блик снизу для контраста */
+    inset 0px -2px 2px 0px rgba(255, 255, 255, 0.2);
 }
 
 .windowRounded {
