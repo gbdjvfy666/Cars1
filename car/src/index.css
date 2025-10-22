@@ -14,3 +14,18 @@ body {
   margin: 0;
   padding: 0;
 }
+.porthole-section {
+  /* --- ЭТО БЛОК ФОНА --- */
+  width: 100%;
+  height: 100vh; /* Высота равна высоте экрана */
+  
+  /* Градиентный фон */
+  background: linear-gradient(205deg, rgb(238 233 245) 0%, rgb(30 34 42) 100%);
+
+  /* Центрируем дочерний элемент (наш компонент PortholeUI) по горизонтали и вертикали */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  
+  position: relative;
+}
