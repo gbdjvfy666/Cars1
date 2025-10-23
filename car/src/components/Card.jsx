@@ -32,7 +32,7 @@ const LuminousCardStyles = `
     position: relative; 
     background: radial-gradient(circle at 50% 0%, #3a3a3a 0%, #1a1a1a 64%); 
     box-shadow: inset 0 1.01rem 0.2rem -1rem #fff0, inset 0 -1.01rem 0.2rem -1rem #0000, 0 -1.02rem 0.2rem -1rem #fff0, 0 1rem 0.2rem -1rem #0000, 0 0 0 1px #fff3, 0 4px 4px 0 #0004, 0 0 0 1px #333; 
-    width: 34rem; /* РАСШИРЕННАЯ ШИРИНА */
+    width: 24rem; /* РАСШИРЕННАЯ ШИРИНА */
     height: auto; 
     min-height: 28rem; /* УВЕЛИЧЕННАЯ МИН. ВЫСОТА */
     border-radius: 1.8rem; 

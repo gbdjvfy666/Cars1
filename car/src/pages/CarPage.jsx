@@ -302,7 +302,7 @@ const CarPage = () => {
 
 // ======================= СТИЛИ =======================
 const styles = {
-    page: { maxWidth: '1280px', margin: '0 auto', padding: '20px', fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif' },
+    page: { maxWidth: '1360px', margin: '0 auto', padding: '20px', fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif' },
 
     mainGrid: { display: 'grid', gridTemplateColumns: '55% 45%', gap: '40px', alignItems: 'flex-start', marginTop: '20px' },
     detailsColumn: { paddingLeft: '20px' },

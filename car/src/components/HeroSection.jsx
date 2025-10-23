@@ -129,7 +129,7 @@ pageWrapper: {
     container: { 
         display: 'flex', 
         fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif', 
-        maxWidth: '1280px', 
+        maxWidth: '1360px', 
         margin: '0 auto',
         padding: '0 24px', 
         gap: '32px', 

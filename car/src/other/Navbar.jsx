@@ -1,36 +1,43 @@
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
-// Удалены все инлайн-компоненты SVG для максимальной простоты.
 
 /**
- * Navbar - закрепленная навигационная панель с минималистичным дизайном (NSBH).
- * Использует чистый белый фон и простой текст.
+ * Navbar - закрепленная навигационная панель, стилизованная под темную тему, 
+ * без какого-либо подчеркивания или явного выделения активного элемента.
  */
 const Navbar = () => {
     const location = useLocation();
-
+    
     // Определяем активную ссылку.
-    // Добавляем placeholder для 'О нас' и 'Контакты'
     const isActive = (path) => location.pathname === path;
 
-    // Упрощенные стили для ссылок: меньше padding, нет теней, только подчеркивание и цвет
+    // Обновленные стили для ссылок под темную тему
     const linkClasses = (path) => 
         `text-base font-semibold tracking-wide transition-colors duration-200 relative pb-1 ` +
-        // Стиль активной ссылки: синий цвет и подчеркивание
+        // Стиль активной ссылки: просто белый текст (нет линии и специального ховера)
         (isActive(path) 
-            // Используем псевдоэлемент after для красивого, тонкого подчеркивания
-            ? 'text-blue-600 after:absolute after:bottom-0 after:left-0 after:h-[2px] after:w-full after:bg-blue-600' 
-            // Стиль неактивной ссылки: серый цвет, hover - синий
-            : 'text-gray-700 hover:text-blue-600'
+            ? 'text-white' 
+            // Стиль неактивной ссылки: серый, hover - белый
+            : 'text-gray-300 hover:text-white'
         );
 
+    // Классы для создания "темного" фона и мягкого "свечения/градиента"
+    const headerClasses = `fixed top-0 left-0 w-full z-50 transition-all duration-300 
+        bg-gray-900 
+        shadow-2xl 
+        shadow-black/70 
+        border-b border-gray-700/50 
+    `;
+
     return (
-        // Фиксированный контейнер: белый фон, легкая тень, z-index 50
-        <header className="fixed top-0 left-0 w-full bg-white shadow-md z-50">
+        <header className={headerClasses}>
             <div className="container mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
                 
                 {/* Логотип / Название проекта: NSBH */}
-                <Link to="/" className="text-3xl font-extrabold text-gray-900 tracking-tighter">
+                <Link 
+                    to="/" 
+                    className="text-3xl font-extrabold text-white tracking-tighter transition-colors duration-200 hover:text-gray-300"
+                >
                     NSBH
                 </Link>
 
