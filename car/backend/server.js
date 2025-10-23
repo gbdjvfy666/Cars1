@@ -105,7 +105,8 @@ app.get('/api/suggestions', async (req, res) => {
 // Основной API роут для поиска со всеми фильтрами (Обновлен для Admin Dashboard)
 app.get('/api/search', async (req, res) => {
     try {
-        const { condition, origin, bodyType, priceFrom, priceTo, engine, searchTerm, drivetrain } = req.query;
+        const { condition, origin, bodyType, priceFrom, priceTo, engine, engineType, searchTerm, drivetrain } = req.query;
+        const engineParam = engine || engineType; // поддерживаем both names
         
         // Устанавливаем лимит по умолчанию 20, но разрешаем фронтенду (например, админке) его переопределять
         const limit = parseInt(req.query.limit) || 20; 
@@ -146,7 +147,7 @@ app.get('/api/search', async (req, res) => {
         }
         
         // "Умная" фильтрация для двигателей
-        const engineFilters = Array.isArray(engine) ? engine : (engine ? [engine] : []);
+        const engineFilters = Array.isArray(engineParam) ? engineParam : (engineParam ? [engineParam] : []);
         if (engineFilters.length > 0) {
             const exactMatches = [];
             const hybridSearchTerms = [];
@@ -188,11 +189,12 @@ app.get('/api/search', async (req, res) => {
         addMultiFilter(bodyType, 'body_type');
         addMultiFilter(drivetrain, 'drivetrain');
 
-        if (priceFrom && !isNaN(parseInt(priceFrom))) {
+        // Корректная обработка priceFrom (разрешаем 0)
+        if (priceFrom !== undefined && priceFrom !== '' && !isNaN(parseInt(priceFrom))) {
             queryParts.push(`price_russia >= $${valueIndex++}`);
             queryValues.push(parseInt(priceFrom));
         }
-        if (priceTo && !isNaN(parseInt(priceTo))) {
+        if (priceTo !== undefined && priceTo !== '' && !isNaN(parseInt(priceTo))) {
             queryParts.push(`price_russia <= $${valueIndex++}`);
             queryValues.push(parseInt(priceTo));
         }

@@ -1,0 +1,74 @@
+/* Button.module.css */
+
+.button {
+    /* Эти стили будут применяться ко всем кнопкам по умолчанию */
+    width: fit-content; /* Ширина по содержимому, если не задана явно */
+    border-radius: 100px; /* Большое скругление по умолчанию (для "таблетки") */
+    padding: 8px 36px;
+    margin-top: 12px;
+    background: #fff2;
+    box-shadow: 0 0 0 1px #fff3, inset 120px 0 100px -100px #000c, 0 0 0 0 #fff1;
+    transition: box-shadow 0.4s ease-in-out;
+    cursor: pointer;
+    
+    /* Общие стили для всех кнопок */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-decoration: none;
+    border: none;
+    color: #000; /* Добавим цвет текста по умолчанию */
+}
+
+.button:hover {
+    box-shadow: 0 0 0 1px #fff3, inset 200px 0px 100px -100px #000a, -4px 0 8px 2px #fff2;
+}
+
+/* Стили для кнопок-вкладок */
+.tab {
+    flex: 1;
+    padding: 8px 15px;
+    font-size: 14px;
+    border: 1px solid #d7d8dc;
+    background-color: #fff;
+    border-radius: 20px;
+    color: #4c4a55;
+    font-weight: 500;
+    transition: all 0.2s;
+    margin-top: 0; /* Убираем отступ для табов */
+}
+
+/* Стиль для активной вкладки */
+.activeTab {
+    border-color: #E30016;
+    background-color: #E30016;
+    color: #fff;
+}
+
+/* Стиль для основной кнопки "Подобрать" */
+.submitButton {
+    width: 100%;
+    padding: 15px;
+    font-size: 16px;
+    font-weight: bold;
+    background-color: #E30016;
+    color: #fff;
+    border-radius: 8px;
+    margin-top: 20px;
+}
+
+/* Стиль для кнопки "Показать все" */
+.showAll {
+    background: none;
+    border: none;
+    padding: 0;
+    color: #6f737d;
+    transition: color 0.2s;
+    margin-top: 8px;
+    box-shadow: none; /* Убираем тень для этой кнопки */
+}
+
+.showAll:hover {
+    box-shadow: none;
+    color: #000;
+}

@@ -1,49 +1,11 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 
-import { useAutocomplete } from '../hooks/useAutocomplete'; 
-import { SmartSearchInput } from '../components/SmartSearchInput';
-import { DropdownFilter } from '../components/DropdownFilter';
+import LuminousCard from '../components/Card';
 import Breadcrumbs from '../components/Breadcrumbs';
 import CarCard from '../components/CarCard';
 
-import '../components/SmartSearchInput.css';
-import '../components/DropdownFilter.css';
-
 const API_BASE_URL = 'http://localhost:4000/api';
-
-const BODY_TYPE_OPTIONS = [
-    { label: 'Седан', value: 'Седан' },
-    { label: 'Хэтчбек', value: 'Хэтчбек' },
-    { label: 'Лифтбек', value: 'Лифтбек' },
-    { label: 'Универсал', value: 'Универсал' },
-    { label: 'Внедорожник', value: 'Внедорожник' },
-    { label: 'Купе', value: 'Купе' },
-    { label: 'Минивэн', value: 'Минивэн' },
-    { label: 'Пикап', value: 'Пикап' },
-    { label: 'Лимузин', value: 'Лимузин' },
-    { label: 'Фургон', value: 'Фургон' },
-    { label: 'Кабриолет', value: 'Кабриолет' },
-    { label: 'Ван', value: 'Ван' },
-];
-const DRIVETRAIN_OPTIONS = [
-    { label: 'Передний', value: 'Передний привод' },
-    { label: 'Задний', value: 'Задний привод' },
-    { label: 'Полный (4WD)', value: 'Полный привод' },
-];
-const ENGINE_OPTIONS = [
-    { label: 'Бензин/ДВС', value: 'Двигатель внутреннего сгорания' },
-    { label: 'Дизель', value: 'Дизельное топливо' },
-    { label: 'Гибрид', value: 'Гибрид' },
-    { label: 'Электро', value: 'Электро' },
-];
-const REGION_OPTIONS = [
-    { label: 'Китайские', value: 'chinese' },
-    { label: 'Европейские', value: 'european' },
-    { label: 'Американские', value: 'american' },
-    { label: 'Японские', value: 'japanese' },
-    { label: 'Корейские', value: 'korean' }
-];
 
 const parseQuery = (search) => {
     const params = new URLSearchParams(search);
@@ -59,8 +21,9 @@ const parseQuery = (search) => {
         bodyType: getParam('bodyType') || [],
         engineType: getParam('engineType') || [],
         drivetrain: getParam('drivetrain') || [],
-        priceFrom: Number(getParam('priceFrom')) || 0,
-        priceTo: Number(getParam('priceTo')) || 30000000,
+        // по умолчанию пустые строки — чтобы инпуты показывали плейсхолдер
+        priceFrom: getParam('priceFrom') !== undefined ? getParam('priceFrom') : '',
+        priceTo: getParam('priceTo') !== undefined ? getParam('priceTo') : '',
         searchTerm: getParam('searchTerm') || '',
     };
     Object.keys(initialFilters).forEach(key => {
@@ -73,21 +36,22 @@ const parseQuery = (search) => {
 
 const SearchPage = () => {
     const location = useLocation();
-    const [currentFilters, setCurrentFilters] = useState(() => parseQuery(location.search));
-    const [appliedFilters, setAppliedFilters] = useState(currentFilters);
+    
+    const [appliedFilters, setAppliedFilters] = useState(() => parseQuery(location.search));
     const [displayedCars, setDisplayedCars] = useState([]);
     const [totalCount, setTotalCount] = useState(0); 
     const [isLoading, setIsLoading] = useState(true);
     const [isAppending, setIsAppending] = useState(false);
     const [error, setError] = useState(null);
     const [page, setPage] = useState(1);
-    const autocomplete = useAutocomplete();
-
+    
+    // Обновление примененных фильтров при изменении URL (вызванном LuminousCard)
     useEffect(() => {
-        setCurrentFilters(prev => ({ ...prev, searchTerm: autocomplete.inputValue }));
-    }, [autocomplete.inputValue]);
+        const newFilters = parseQuery(location.search);
+        setAppliedFilters(newFilters);
+        setPage(1); 
+    }, [location.search]);
 
-    // 👇👇👇 ИСПРАВЛЕНИЕ ЛОГИКИ ЗДЕСЬ 👇👇👇
     const generateSearchQuery = (filters, currentPage) => {
         const params = new URLSearchParams();
         params.set('page', currentPage);
@@ -102,20 +66,20 @@ const SearchPage = () => {
             }
         };
 
-        // Возвращаем правильные имена параметров, которые ожидает бэкенд
         append('searchTerm', filters.searchTerm);
         if (filters.condition !== 'all') {
             append('condition', filters.condition);
         }
         append('origin', filters.origin);
-        append('engineType', filters.engineType); // Было 'engine'
+        append('engineType', filters.engineType);
         append('bodyType', filters.bodyType);
         append('drivetrain', filters.drivetrain);
         
-        if (filters.priceFrom > 0) {
+        // заменяем условные проверки на явную проверку непустой строки и валидности числа
+        if (filters.priceFrom !== '' && filters.priceFrom !== undefined && filters.priceFrom !== null && !isNaN(Number(filters.priceFrom))) { 
             append('priceFrom', filters.priceFrom);
         }
-        if (filters.priceTo > 0 && filters.priceTo < 30000000) {
+        if (filters.priceTo !== '' && filters.priceTo !== undefined && filters.priceTo !== null && !isNaN(Number(filters.priceTo))) { 
             append('priceTo', filters.priceTo);
         }
 
@@ -144,63 +108,46 @@ const SearchPage = () => {
     }, []);
 
     useEffect(() => {
-        setPage(1);
         setDisplayedCars([]);
         handleSearch(appliedFilters, 1);
     }, [appliedFilters, handleSearch]);
     
-    const handleApplyFilters = () => setAppliedFilters(currentFilters);
-    const handleLoadMore = () => { const nextPage = page + 1; setPage(nextPage); handleSearch(appliedFilters, nextPage); };
+    const handleLoadMore = () => { 
+        const nextPage = page + 1; 
+        setPage(nextPage); 
+        handleSearch(appliedFilters, nextPage); 
+    };
     const canLoadMore = displayedCars.length < totalCount;
-
-    const handlePriceChange = (e) => { const val = e.target.value.replace(/[^0-9]/g, ''); setCurrentFilters(prev => ({ ...prev, [e.target.name]: Number(val) || 0 })); };
-    const handleFilterChange = (key, values) => {
-        setCurrentFilters(prev => ({ ...prev, [key]: values }));
-    };
-    
-    const handleResetFilters = () => {
-        const initial = parseQuery('');
-        setCurrentFilters(initial);
-        setAppliedFilters(initial);
-        autocomplete.setInputValue(''); 
-    };
-    
-    const formatPrice = p => (p > 0 && p < 30000000) ? p.toLocaleString('ru-RU') : '';
 
     const breadcrumbItems = [{ label: 'Поиск', to: '/search' }];
 
     return (
-        <div style={styles.page}>
-            <Breadcrumbs items={breadcrumbItems} />
-            <h1 style={styles.pageTitle}>Поиск объявлений</h1>
-            <div style={styles.contentWrapper}>
-                <div style={styles.sideFilterBar}>
-                    <h3 style={styles.filterTitle}>Поиск по марке/модели</h3>
-                    <SmartSearchInput {...autocomplete} />
-                    <button onClick={handleApplyFilters} style={styles.applyButton}>Применить</button>
-                    <hr style={styles.hr} />
-                    <DropdownFilter title="Тип кузова" options={BODY_TYPE_OPTIONS} selectedValues={currentFilters.bodyType || []} onFilterChange={(values) => handleFilterChange('bodyType', values)} />
-                    <DropdownFilter title="Тип двигателя" options={ENGINE_OPTIONS} selectedValues={currentFilters.engineType || []} onFilterChange={(values) => handleFilterChange('engineType', values)} />
-                    <DropdownFilter title="Привод" options={DRIVETRAIN_OPTIONS} selectedValues={currentFilters.drivetrain || []} onFilterChange={(values) => handleFilterChange('drivetrain', values)} />
-                    <DropdownFilter title="Регион" options={REGION_OPTIONS} selectedValues={currentFilters.origin || []} onFilterChange={(values) => handleFilterChange('origin', values)} />
-                    <hr style={styles.hr} />
-                    <h3 style={styles.filterTitle}>Цена, ₽</h3>
-                    <div style={styles.priceInputsGroup}>
-                        <input name="priceFrom" type="text" value={formatPrice(currentFilters.priceFrom)} onChange={handlePriceChange} style={styles.input} placeholder="От"/>
-                        <input name="priceTo" type="text" value={formatPrice(currentFilters.priceTo)} onChange={handlePriceChange} style={styles.input} placeholder="До"/>
+
+        <div style={styles.pageWrapper}> 
+            <div style={styles.page}>
+                <Breadcrumbs items={breadcrumbItems} />
+                <h1 style={styles.pageTitle}>Поиск объявлений</h1>
+                <div style={styles.contentWrapper}>
+                    
+                    <div style={styles.sideFilterBar}>
+                        {/* 💡 ПРЕДПОЛАГАЕМ, ЧТО LuminousCard ИМПОРТИРУЕТСЯ ИЗ КОМПОНЕНТОВ (../components/LuminousCard) */}
+                        <LuminousCard /> 
                     </div>
-                    <button onClick={handleResetFilters} style={{...styles.filterButtonInactive, width: '100%', marginTop: '20px', padding: '10px'}}>Сбросить фильтры</button>
-                </div>
-                <div style={styles.resultsWrapper}>
-                    <div style={styles.resultsHeader}><span style={styles.resultsCount}>{isLoading ? 'Загрузка...' : `Найдено ${totalCount} объявлений`}</span><select style={styles.sortSelect}><option>Сначала новые</option><option>Сначала дешевые</option><option>Сначала дорогие</option></select></div>
-                    {error && <div style={{...styles.noResults, color: '#E30016', border: '1px solid #E3001650'}}>❌ Ошибка: {error}</div>}
-                    <div style={styles.resultsGrid}>
-                        {isLoading ? <p style={{ gridColumn: '1 / -1', textAlign: 'center', color: '#888' }}>Примените фильтры для поиска...</p>
-                         : !error && displayedCars.length > 0 ? displayedCars.map(car => <CarCard key={car.id} car={car} />)
-                         : !isLoading && !error && <div style={styles.noResults}>😕 Ничего не найдено.<p style={{fontSize: '16px', color: '#888'}}>Попробуйте изменить параметры.</p></div>
-                        }
+
+                    <div style={styles.resultsWrapper}>
+                        <div style={styles.resultsHeader}>
+                            <span style={styles.resultsCount}>{isLoading ? 'Загрузка...' : `Найдено ${totalCount} объявлений`}</span>
+                            <select style={styles.sortSelect}><option>Сначала новые</option><option>Сначала дешевые</option><option>Сначала дорогие</option></select>
+                        </div>
+                        {error && <div style={{...styles.noResults, color: '#E30016', border: '1px solid #E3001650'}}>❌ Ошибка: {error}</div>}
+                        <div style={styles.resultsGrid}>
+                            {isLoading ? <p style={{ gridColumn: '1 / -1', textAlign: 'center', color: '#888' }}>Загрузка объявлений...</p>
+                             : !error && displayedCars.length > 0 ? displayedCars.map(car => <CarCard key={car.id} car={car} />)
+                             : !isLoading && !error && <div style={styles.noResults}>😕 Ничего не найдено.<p style={{fontSize: '16px', color: '#888'}}>Попробуйте изменить параметры.</p></div>
+                            }
+                        </div>
+                        <div style={styles.loadMoreContainer}>{!isLoading && canLoadMore && <button onClick={handleLoadMore} disabled={isAppending} style={styles.loadMoreButton}>{isAppending ? 'Загрузка...' : `Показать еще ${Math.min(20, totalCount - displayedCars.length)} авто`}</button>}</div>
                     </div>
-                    <div style={styles.loadMoreContainer}>{!isLoading && canLoadMore && <button onClick={handleLoadMore} disabled={isAppending} style={styles.loadMoreButton}>{isAppending ? 'Загрузка...' : `Показать еще ${Math.min(20, totalCount - displayedCars.length)} авто`}</button>}</div>
                 </div>
             </div>
         </div>
@@ -210,24 +157,49 @@ const SearchPage = () => {
 const tabButton = { padding: '8px 15px', fontSize: '14px', border: '1px solid #d7d8dc', backgroundColor: '#fff', borderRadius: '20px', cursor: 'pointer', color: '#4c4a55', fontWeight: 500, transition: 'all 0.2s' };
 
 const styles = { 
-    page: { fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif', maxWidth: '1280px', margin: '0 auto', padding: '20px' },
-    pageTitle: { fontSize: '28px', fontWeight: 'bold', margin: '10px 0 20px 0' },
+    // 💡 НОВЫЙ СТИЛЬ: Обертка страницы с темным градиентным фоном
+pageWrapper: {
+        backgroundColor: '#131313',
+        backgroundImage: 'radial-gradient(circle at 40% 40%, #2a2a2a 0%, #131313 85%)',
+        minHeight: '100vh',
+        
+        // ==============================================
+        // !!! НОВЫЕ СВОЙСТВА ДЛЯ СТАТИЧНОГО ФОНА !!!
+        backgroundAttachment: 'fixed', 
+        backgroundRepeat: 'no-repeat',
+        // ==============================================
+    },
+    // 💡 СТИЛЬ: Основной контейнер, который был styles.page
+    page: { 
+        fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif', 
+        maxWidth: '1280px', 
+        margin: '0 auto', 
+        padding: '20px',
+        color: '#f0f0f0', // Общий светлый цвет текста
+    },
+    // 💡 СТИЛЬ: Заголовок страницы
+    pageTitle: { 
+        fontSize: '28px', 
+        fontWeight: 'bold', 
+        margin: '10px 0 20px 0',
+        color: '#f0f0f0', // Светлый цвет заголовка
+    },
     contentWrapper: { display: 'flex', gap: '32px', alignItems: 'flex-start' },
     applyButton: { width: '100%', padding: '10px', marginTop: '10px', fontSize: '16px', fontWeight: 'bold', backgroundColor: '#E30016', color: '#fff', border: 'none', borderRadius: '8px', cursor: 'pointer', transition: 'background-color 0.2s' },
-    sideFilterBar: { flex: '0 0 280px', padding: '20px', backgroundColor: '#f9f9f9', borderRadius: '12px', border: '1px solid #eee', position: 'sticky', top: '20px' },
-    filterTitle: { fontSize: '16px', fontWeight: '600', color: '#333', marginBottom: '10px', marginTop: '15px' },
+    sideFilterBar: { flex: '0 0 34rem', width: '34rem', position: 'sticky', top: '20px', padding: '0', backgroundColor: 'transparent', border: 'none' }, 
+    filterTitle: { fontSize: '16px', fontWeight: '600', color: '#f0f0f0', marginBottom: '10px', marginTop: '15px' },
     filterButtonInactive: { ...tabButton, backgroundColor: '#fff', borderRadius: '8px', padding: '8px 12px' },
-    hr: { border: 'none', borderTop: '1px solid #eee', margin: '20px 0' },
+    hr: { border: 'none', borderTop: '1px solid #333', margin: '20px 0' }, // Более темный разделитель
     priceInputsGroup: { display: 'flex', gap: '10px' },
-    input: { flex: 1, padding: '10px 12px', border: '1px solid #d7d8dc', borderRadius: '8px', fontSize: '14px', outline: 'none', transition: 'border-color 0.2s', textAlign: 'center', boxSizing: 'border-box' },
+    input: { flex: 1, padding: '10px 12px', border: '1px solid #444', backgroundColor: '#1c1c1c', color: '#f0f0f0', borderRadius: '8px', fontSize: '14px', outline: 'none', transition: 'border-color 0.2s', textAlign: 'center', boxSizing: 'border-box' },
     resultsWrapper: { flex: '1' },
     resultsHeader: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', padding: '0 5px' },
-    resultsCount: { fontSize: '18px', fontWeight: 'bold', color: '#333' },
-    sortSelect: { padding: '8px 12px', borderRadius: '8px', border: '1px solid #d7d8dc', backgroundColor: '#fff', fontSize: '14px', cursor: 'pointer' },
+    resultsCount: { fontSize: '18px', fontWeight: 'bold', color: '#f0f0f0' },
+    sortSelect: { padding: '8px 12px', borderRadius: '8px', border: '1px solid #444', backgroundColor: '#1c1c1c', color: '#f0f0f0', fontSize: '14px', cursor: 'pointer' }, // Обновлены стили для select
     resultsGrid: { display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '24px' },
     loadMoreContainer: { textAlign: 'center', marginTop: '30px' },
     loadMoreButton: { padding: '12px 30px', fontSize: '16px', fontWeight: 'bold', backgroundColor: '#E30016', color: '#fff', border: 'none', borderRadius: '8px', cursor: 'pointer', transition: 'background-color 0.2s' },
-    noResults: { gridColumn: '1 / -1', textAlign: 'center', padding: '50px 0', fontSize: '20px', color: '#666', backgroundColor: '#fff', borderRadius: '12px', marginTop: '20px', border: '1px solid #eee' }
+    noResults: { gridColumn: '1 / -1', textAlign: 'center', padding: '50px 0', fontSize: '20px', color: '#ccc', backgroundColor: '#2a2a2a', borderRadius: '12px', marginTop: '20px', border: '1px solid #3a3a3a' }
 };
 
 export default SearchPage;
