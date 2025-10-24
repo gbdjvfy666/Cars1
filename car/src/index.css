@@ -10,6 +10,24 @@
   background-color: #ffffff; /* Ставим белый фон по умолчанию */
 }
 
+/* Глобальные стили для предотвращения горизонтального скролла */
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+html, body {
+    width: 100%;
+    margin: 0;
+    padding: 0;
+}
+
+#root {
+    width: 100%;
+    position: relative;
+}
+
 body {
   margin: 0;
   padding: 0;

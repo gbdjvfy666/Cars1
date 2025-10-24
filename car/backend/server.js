@@ -266,10 +266,13 @@ app.get('/api/car/:id', async (req, res) => {
 // =================================================================
 // 🚀 МАРШРУТ ДЛЯ ПОЛНОГО РЕДАКТИРОВАНИЯ ДАННЫХ МАШИНЫ (PUT)
 // =================================================================
+// =================================================================
+// 🚀 МАРШРУТ ДЛЯ ПОЛНОГО РЕДАКТИРОВАНИЯ ДАННЫХ МАШИНЫ (PUT)
+// =================================================================
 app.put('/api/car/:id', async (req, res) => {
     const { id } = req.params;
     
-    // 1. Деструктуризация ВСЕХ полей из req.body
+    // 1. Деструктуризация ВСЕХ полей
     const { 
         brand, model, name, price_russia, price_china, year, mileage, 
         engine_type, drivetrain, body_type, origin, 
@@ -308,17 +311,17 @@ app.put('/api/car/:id', async (req, res) => {
             RETURNING *;
         `;
         
-        // 3. Массив значений (47 колонок + ID = 48 параметров). 
-        // Поля JSONB ОБЯЗАТЕЛЬНО должны быть преобразованы в строку с помощью JSON.stringify().
+        // 3. Массив значений. 
+        // 🚨 JSONB-поля (images, options, characteristics, etc.) передаются как JavaScript-объекты.
         const values = [
             brand, model, name, price_russia, price_china, year, mileage, engine_type, drivetrain, body_type, 
-            origin, JSON.stringify(images), JSON.stringify(options), JSON.stringify(characteristics), 
-            JSON.stringify(accessories), JSON.stringify(other_trims), JSON.stringify(colors), source_url, 
+            origin, images, options, characteristics, 
+            accessories, other_trims, colors, source_url, 
             emission_standard, engine_spec_type, displacement, max_power_ps, transmission, steering_position, 
             max_torque_nm, fuel_type, seats, brake_system, tire_size, airbags, sunroof, roof_rack, 
             body_structure, max_speed_kmh, battery_type, charging_time, dimensions_lwh, tpms, rear_camera, 
             seat_color, driver_seat_adjustment, copilot_seat_adjustment, touch_screen, air_conditioner, 
-            rear_light, daytime_light, JSON.stringify(specs), 
+            rear_light, daytime_light, specs, 
             id // $48
         ];
 
@@ -330,7 +333,7 @@ app.put('/api/car/:id', async (req, res) => {
 
         res.json({ 
             message: '✅ Данные успешно обновлены', 
-            car: result.rows[0] // Отправляем обновленную запись обратно для подтверждения
+            car: result.rows[0] 
         });
 
     } catch (error) {

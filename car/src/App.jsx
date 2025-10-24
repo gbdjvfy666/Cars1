@@ -13,17 +13,17 @@ import SearchPage from './pages/SearchPage';
 
 import AdminDashboardPage from './pages/AdminDashboardPage'; 
 import AdminEditCarPage from './components/AdminEditCarPage';
-
+import PlainWhiteNavbar from './other/PlainWhiteNavbar';
 
 function App() {
   return (
     <Router>
       {/* 1. Навигационная панель всегда сверху */}
       <Navbar /> 
-      
+      <PlainWhiteNavbar />
       {/* 2. Основной контейнер контента с отступом сверху (pt-16) 
           для компенсации высоты фиксированного Navbar (h-16) */}
-      <div className="pt-16 min-h-screen bg-gray-50"> 
+      <div className="min-h-screen bg-gray-50" style={{ width: '100%' }}>
         <Routes>
           
           <Route path="/" element={<Home />} />

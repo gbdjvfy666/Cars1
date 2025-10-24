@@ -49,7 +49,7 @@ const BrandSection = ({ sectionKey, title, brands, isExpanded, onToggle }) => {
 };
 
 // ====================================================================
-// ГЛАВНЫЙ КОМПОНЕНТ СТРАНИЦЫ (теперь без Sidebar)
+// ГЛАВНЫЙ КОМПОНЕНТ СТРАНИЦЫ
 // ====================================================================
 
 function HomePage() {
@@ -100,7 +100,7 @@ function HomePage() {
                     )}
                 </div>
                 
-                {/* ВОТ ОНО! МЕНЯЕМ <Sidebar /> НА <LuminousCard /> ВНУТРИ ОБЕРТКИ */}
+                {/* КОНТЕЙНЕР ДЛЯ КАРТОЧКИ */}
                 <div style={styles.sidebarContainer}>
                     <LuminousCard />
                 </div>
@@ -111,13 +111,14 @@ function HomePage() {
 }
 
 // ====================================================================
-// ОБЪЕКТ СТИЛЕЙ (старые стили для Sidebar удалены)
+// ОБЪЕКТ СТИЛЕЙ
 // ====================================================================
 const styles = {
-pageWrapper: {
+    pageWrapper: {
         backgroundColor: '#131313',
         backgroundImage: 'radial-gradient(circle at 70% 20%, #2a2a2a 0%, #131313 64%)',
-        padding: '40px 0',
+        // ИЗМЕНЕНИЕ 1: Убираем верхний отступ (оставляем только 0 для верха), чтобы sticky элемент мог подняться выше.
+        padding: '0 0 40px 0',
         minHeight: '100vh',
         
         // ==============================================
@@ -131,7 +132,8 @@ pageWrapper: {
         fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif', 
         maxWidth: '1360px', 
         margin: '0 auto',
-        padding: '0 24px', 
+        // ИЗМЕНЕНИЕ 2: Возвращаем 40px верхнего отступа для контента здесь, чтобы он не слипался с Navbar.
+        padding: '40px 24px 0 24px', 
         gap: '32px', 
         alignItems: 'flex-start' 
     },
@@ -156,7 +158,9 @@ pageWrapper: {
     sidebarContainer: { 
         flex: '0 0 30rem', // Задаем фиксированную ширину, равную ширине карточки
         position: 'sticky', 
-        top: '100px' 
+        // ИЗМЕНЕНИЕ: Устанавливаем прилипание на 110px от верха viewport. 
+        // Это (70px Navbar + 40px padding контейнера) = 110px.
+        top: '110px' 
     },
 };
 

@@ -136,7 +136,7 @@ const Characteristics = ({ characteristics }) => {
         
         return (
             <div>
-                <h3 style={styles.charCategoryTitle(true)}>{sectionName}</h3>
+                <h3 style={styles.charCategoryTitle}>{sectionName}</h3>
                 {dataAsArray.map((item, index) => (
                     <div key={item.name || index} style={styles.charRow}>
                         <div style={styles.charName}><span style={styles.infoIcon}>ⓘ</span>{item.name}</div>
@@ -266,96 +266,360 @@ const CarPage = () => {
     ];
 
     return (
-        <div style={styles.page}>
-            {/* 3. Используем компонент Breadcrumbs вместо старой разметки */}
-            <Breadcrumbs items={breadcrumbItems} />
+        <div style={styles.pageWrapper}>
+            <div style={styles.container}>
+                <Breadcrumbs items={breadcrumbItems} />
 
-            <div style={styles.mainGrid}>
-                <ImageGallery images={car.images} tags={car.tags} id={car.id} />
-                <div style={styles.detailsColumn}>
-                    <h1 style={styles.carTitle}>{car.name}</h1>
-                    <SpecsTable specs={mainSpecsForTable} />
-                    <div style={{ margin: '20px 0', borderBottom: '1px solid #eee' }}></div>
-                    {car.colors && car.colors.length > 0 && (
-                        <div style={styles.colors}>
-                            <span style={styles.specKey}>Цвет кузова:</span>
-                            <div style={styles.colorSwatches}>
-                                {car.colors.map((color, index) => <div key={index} style={{...styles.colorSwatch, backgroundColor: color}}></div>)}
+                <div style={styles.mainGrid}>
+                    <ImageGallery images={car.images} tags={car.tags} id={car.id} />
+                    <div style={styles.detailsColumn}>
+                        <h1 style={styles.carTitle}>{car.name}</h1>
+                        <SpecsTable specs={mainSpecsForTable} />
+                        <div style={styles.divider}></div>
+                        {car.colors && car.colors.length > 0 && (
+                            <div style={styles.colors}>
+                                <span style={styles.specKey}>Цвет кузова:</span>
+                                <div style={styles.colorSwatches}>
+                                    {car.colors.map((color, index) => (
+                                        <div key={index} style={{...styles.colorSwatch, backgroundColor: color}}></div>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
+                        <div style={styles.priceBlock}>
+                            {priceChina > 0 && (
+                                <div style={styles.priceChina}>
+                                    {priceChina.toLocaleString('ru-RU')} ₽ 
+                                    <span style={styles.priceLabel}>Цена в Китае</span>
+                                </div>
+                            )}
+                            <div style={styles.priceRussia}>
+                                ~ {priceRussia.toLocaleString('ru-RU')} ₽
                             </div>
                         </div>
-                    )}
-                    <div style={styles.priceBlock}>
-                        {priceChina > 0 && <div style={styles.priceChina}>{priceChina.toLocaleString('ru-RU')} ₽ <span style={{color: '#999'}}>Цена в Китае</span></div>}
-                        <div style={styles.priceRussia}>~ {priceRussia.toLocaleString('ru-RU')} ₽</div>
+                        <div style={styles.deliveryInfo}>
+                            <span style={styles.alertIcon}>!</span>
+                            Доставка, таможенные платежи, СБКТС и ЭПТС включены в стоимость...
+                        </div>
+                        <button style={styles.orderButton}>Оставить заявку</button>
                     </div>
-                    <div style={styles.deliveryInfo}><span style={{color: 'red', marginRight: 5}}>!</span>Доставка, таможенные платежи, СБКТС и ЭПТС включены в стоимость...</div>
-                    <button style={styles.orderButton}>Оставить заявку</button>
                 </div>
+                
+                <OptionsCarousel options={car.options} />
+                <Characteristics characteristics={car.characteristics} />
+                <Accessories accessories={car.accessories} model={car.model} />
             </div>
-            
-            <OptionsCarousel options={car.options} />
-            <Characteristics characteristics={car.characteristics} />
-            <Accessories accessories={car.accessories} model={car.model} />
         </div>
     );
 };
 
-// ======================= СТИЛИ =======================
+// Обновленные стили для темной темы
 const styles = {
-    page: { maxWidth: '1360px', margin: '0 auto', padding: '20px', fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif' },
+    pageWrapper: {
+        backgroundColor: '#131313',
+        backgroundImage: 'radial-gradient(circle at 70% 20%, #2a2a2a 0%, #131313 64%)',
+        backgroundAttachment: 'fixed',
+        backgroundRepeat: 'no-repeat',
+        minHeight: '100vh',
+        padding: '40px 0',
+        color: '#f0f0f0',
+    },
+    container: {
+        maxWidth: '1360px',
+        margin: '0 auto',
+        padding: '0 24px',
+        fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+    },
+    mainGrid: {
+        display: 'grid',
+        gridTemplateColumns: '55% 45%',
+        gap: '40px',
+        alignItems: 'flex-start',
+        marginTop: '24px',
+    },
+    detailsColumn: {
+        padding: '24px',
+        backgroundColor: '#1c1c1c',
+        borderRadius: '12px',
+        border: '1px solid #333',
+    },
+    galleryContainer: {
+        display: 'flex',
+        flexDirection: 'column',
+        gap: '12px',
+        backgroundColor: '#1c1c1c',
+        padding: '24px',
+        borderRadius: '12px',
+        border: '1px solid #333',
+    },
+    mainImageWrapper: {
+        borderRadius: '8px',
+        overflow: 'hidden',
+        position: 'relative',
+        backgroundColor: '#242424',
+    },
+    mainImage: {
+        width: '100%',
+        display: 'block',
+        aspectRatio: '16 / 10',
+        objectFit: 'cover',
+    },
+    imageTags: {
+        position: 'absolute',
+        top: '15px',
+        right: '15px',
+        display: 'flex',
+        gap: '8px',
+    },
+    imageTag: {
+        backgroundColor: 'rgba(0, 0, 0, 0.7)',
+        color: '#fff',
+        padding: '6px 12px',
+        borderRadius: '20px',
+        fontSize: '12px',
+        fontWeight: '500',
+    },
+    imageId: {
+        position: 'absolute',
+        bottom: '15px',
+        left: '15px',
+        color: '#fff',
+        backgroundColor: 'rgba(0,0,0,0.7)',
+        padding: '6px 12px',
+        borderRadius: '6px',
+        fontSize: '12px',
+    },
+    inStockLabel: {
+        position: 'absolute',
+        bottom: '15px',
+        right: '15px',
+        color: '#fff',
+        backgroundColor: '#00b33e',
+        padding: '6px 12px',
+        borderRadius: '6px',
+        fontSize: '12px',
+        fontWeight: '600',
+    },
+    thumbnailGrid: {
+        display: 'grid',
+        gridTemplateColumns: 'repeat(6, 1fr)',
+        gap: '12px',
+    },
+    thumbnailWrapper: {
+        borderRadius: '6px',
+        overflow: 'hidden',
+        cursor: 'pointer',
+        border: '1px solid #333',
+        backgroundColor: '#242424',
+        transition: 'border-color 0.2s',
+        '&:hover': {
+            borderColor: '#666',
+        },
+    },
+    thumbnail: {
+        width: '100%',
+        height: '70px',
+        objectFit: 'cover',
+        display: 'block',
+    },
+    carTitle: {
+        fontSize: '28px',
+        fontWeight: 'bold',
+        margin: '0 0 24px 0',
+        color: '#f0f0f0',
+        lineHeight: 1.3,
+    },
+    specsTable: {
+        display: 'grid',
+        gridTemplateColumns: 'repeat(auto-fill, minmax(120px, 1fr))',
+        gap: '20px',
+        padding: '20px',
+        backgroundColor: '#242424',
+        borderRadius: '8px',
+        border: '1px solid #333',
+    },
+    specItem: {
+        display: 'flex',
+        flexDirection: 'column',
+        gap: '4px',
+    },
+    specKey: {
+        color: '#999',
+        fontSize: '14px',
+    },
+    specValue: {
+        color: '#f0f0f0',
+        fontWeight: '500',
+        fontSize: '16px',
+    },
+    divider: {
+        margin: '24px 0',
+        borderBottom: '1px solid #333',
+    },
+    colors: {
+        display: 'flex',
+        alignItems: 'center',
+        gap: '12px',
+        marginBottom: '24px',
+    },
+    colorSwatches: {
+        display: 'flex',
+        gap: '8px',
+    },
+    colorSwatch: {
+        width: '24px',
+        height: '24px',
+        borderRadius: '50%',
+        border: '2px solid #242424',
+        cursor: 'pointer',
+        boxShadow: '0 0 0 1px #444',
+    },
+    priceBlock: {
+        margin: '24px 0',
+        padding: '20px',
+        backgroundColor: '#242424',
+        borderRadius: '8px',
+        border: '1px solid #333',
+    },
+    priceChina: {
+        fontSize: '18px',
+        color: '#f0f0f0',
+        marginBottom: '12px',
+    },
+    priceLabel: {
+        color: '#999',
+        marginLeft: '8px',
+        fontSize: '14px',
+    },
+    priceRussia: {
+        fontSize: '32px',
+        fontWeight: 'bold',
+        color: '#f0f0f0',
+        textAlign: 'center',
+        padding: '16px',
+        backgroundColor: '#E30016',
+        borderRadius: '8px',
+        marginTop: '12px',
+    },
+    deliveryInfo: {
+        fontSize: '13px',
+        color: '#bbb',
+        margin: '20px 0',
+        padding: '12px 16px',
+        backgroundColor: '#242424',
+        borderRadius: '8px',
+        border: '1px solid #333',
+        display: 'flex',
+        alignItems: 'center',
+    },
+    alertIcon: {
+        color: '#E30016',
+        marginRight: '8px',
+        fontWeight: 'bold',
+    },
+    orderButton: {
+        width: '100%',
+        padding: '16px',
+        backgroundColor: '#E30016',
+        color: 'white',
+        border: 'none',
+        borderRadius: '8px',
+        fontSize: '18px',
+        fontWeight: 'bold',
+        cursor: 'pointer',
+        transition: 'background-color 0.2s',
+        '&:hover': {
+            backgroundColor: '#cc0014',
+        },
+    },
 
-    mainGrid: { display: 'grid', gridTemplateColumns: '55% 45%', gap: '40px', alignItems: 'flex-start', marginTop: '20px' },
-    detailsColumn: { paddingLeft: '20px' },
-    galleryContainer: { display: 'flex', flexDirection: 'column', gap: '10px' },
-    mainImageWrapper: { borderRadius: '12px', overflow: 'hidden', position: 'relative' },
-    mainImage: { width: '100%', display: 'block', aspectRatio: '16 / 10', objectFit: 'cover' },
-    imageTags: { position: 'absolute', top: '15px', right: '15px', display: 'flex', gap: '8px' },
-    imageTag: { backgroundColor: 'rgba(0, 0, 0, 0.5)', color: 'white', padding: '4px 10px', borderRadius: '20px', fontSize: '12px' },
-    imageId: { position: 'absolute', bottom: '15px', left: '15px', color: 'white', backgroundColor: 'rgba(0,0,0,0.5)', padding: '4px 8px', borderRadius: '4px', fontSize: '12px'},
-    inStockLabel: { position: 'absolute', bottom: '15px', right: '15px', color: '#333', backgroundColor: 'white', padding: '4px 10px', borderRadius: '4px', fontSize: '12px', fontWeight: '500'},
-    thumbnailGrid: { display: 'grid', gridTemplateColumns: 'repeat(6, 1fr)', gap: '10px' },
-    thumbnailWrapper: { borderRadius: '8px', overflow: 'hidden', cursor: 'pointer', border: '1px solid #eee' },
-    thumbnail: { width: '100%', height: '70px', objectFit: 'cover', display: 'block' },
-    thumbnailOverlay: { background: 'rgba(0,0,0,0.6)', color: 'white', display: 'grid', placeItems: 'center', borderRadius: '8px', fontSize: '24px', fontWeight: 'bold', cursor: 'pointer', height: '70px' },
-    carTitle: { fontSize: '28px', fontWeight: 'bold', margin: '0 0 20px 0', lineHeight: 1.3 },
-    specsTable: { display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(120px, 1fr))', gap: '20px', padding: '20px', backgroundColor: '#fafafa', borderRadius: '8px', marginBottom: '20px' },
-    specItem: { display: 'flex', flexDirection: 'column' },
-    specKey: { color: '#888', fontSize: '14px', marginBottom: '4px', textTransform: 'capitalize' },
-    specValue: { fontWeight: '500', fontSize: '16px' },
-    colors: { display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '30px' },
-    colorSwatches: { display: 'flex', gap: '8px' },
-    colorSwatch: { width: '24px', height: '24px', borderRadius: '50%', border: '2px solid white', boxShadow: '0 0 0 1px #ddd', cursor: 'pointer' },
-    priceBlock: { margin: '20px 0' },
-    priceChina: { fontSize: '18px', color: '#333' },
-    priceRussia: { fontSize: '28px', fontWeight: 'bold', color: '#333', padding: '15px', backgroundColor: '#e8f5e9', borderRadius: '8px', marginTop: '10px', textAlign: 'center' },
-    deliveryInfo: { fontSize: '12px', color: '#999', margin: '20px 0', padding: '10px', backgroundColor: '#fff8f8', borderRadius: '8px', display: 'flex', alignItems: 'center' },
-    orderButton: { width: '100%', padding: '18px', backgroundColor: '#E30016', color: 'white', border: 'none', borderRadius: '8px', fontSize: '18px', fontWeight: 'bold', cursor: 'pointer' },
-    sectionTitle: { fontSize: '24px', fontWeight: 'bold', margin: '60px 0 20px 0', textAlign: 'center' },
-    optionsContainer: { padding: '20px 0', borderTop: '1px solid #eee', borderBottom: '1px solid #eee', marginTop: '40px' },
-    optionsCarousel: { display: 'flex', gap: '20px', overflowX: 'auto', padding: '20px 10px', alignItems: 'center', justifyContent: 'center' },
-    carouselArrow: { background: 'none', border: '1px solid #ccc', borderRadius: '50%', width: '30px', height: '30px', cursor: 'pointer' },
-    optionItem: { textAlign: 'center', minWidth: '100px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px' },
-    optionIcon: { width: '50px', height: '50px' },
-    optionName: { fontSize: '12px', color: '#666' },
-    buttonsContainer: { display: 'flex', justifyContent: 'center', gap: '20px', marginTop: '30px' },
-    redButton: { padding: '12px 24px', backgroundColor: '#E30016', color: 'white', border: 'none', borderRadius: '8px', fontWeight: 'bold', cursor: 'pointer' },
-    whiteButton: { padding: '12px 24px', backgroundColor: 'white', color: '#E30016', border: '1px solid #E30016', borderRadius: '8px', fontWeight: 'bold', cursor: 'pointer' },
-    charContainer: { marginTop: '40px' },
-    charGrid: { display: 'grid', gridTemplateColumns: '250px 1fr', gap: '30px', backgroundColor: '#fafafa', padding: '20px', borderRadius: '8px', alignItems: 'start' },
-    charTabs: { display: 'flex', flexDirection: 'column', gap: '5px', position: 'sticky', top: '20px' },
-    charTab: { padding: '10px 15px', border: '1px solid #eee', backgroundColor: 'white', color: '#333', borderRadius: '8px', textAlign: 'left', cursor: 'pointer', transition: 'background-color 0.2s, color 0.2s, border-color 0.2s' },
-    activeCharTab: { padding: '10px 15px', border: '1px solid #E30016', backgroundColor: '#E30016', color: 'white', borderRadius: '8px', textAlign: 'left', cursor: 'pointer', fontWeight: 'bold', transition: 'background-color 0.2s' },
-    charContent: { padding: '0 20px', minHeight: '300px' },
-    charCategoryTitle: (isFirst) => ({ fontSize: '18px', fontWeight: 'bold', color: '#E30016', margin: '0 0 20px 0', paddingTop: isFirst ? 0 : '20px', borderTop: isFirst ? 'none' : '1px solid #eee' }),
-    charRow: { display: 'grid', gridTemplateColumns: '1fr 1fr', alignItems: 'center', borderBottom: '1px solid #eee', padding: '12px 0', fontSize: '14px' },
-    charName: { color: '#666', display: 'flex', alignItems: 'center', gap: '8px' },
-    infoIcon: { display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: '16px', height: '16px', borderRadius: '50%', backgroundColor: '#ccc', color: 'white', fontSize: '10px', fontWeight: 'bold' },
-    charValue: { fontWeight: '500', justifySelf: 'flex-end' },
-    accessoriesGrid: { display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '20px' },
-    accessoryCard: { border: '1px solid #eee', borderRadius: '8px', padding: '15px' },
-    accessoryImage: { width: '100%', height: '150px', objectFit: 'contain', marginBottom: '10px' },
-    accessoryName: { margin: '0 0 5px 0', fontSize: '16px' },
-    accessoryDesc: { fontSize: '12px', color: '#666', lineHeight: 1.5 },
+    // Стили для остальных компонентов тоже обновлены для темной темы
+    sectionTitle: {
+        fontSize: '24px',
+        fontWeight: 'bold',
+        margin: '60px 0 24px 0',
+        color: '#f0f0f0',
+        textAlign: 'center',
+    },
+    charContainer: {
+        marginTop: '32px',
+        backgroundColor: '#1c1c1c',
+        padding: '24px',
+        borderRadius: '12px',
+        border: '1px solid #333',
+    },
+    charGrid: {
+        display: 'grid',
+        gridTemplateColumns: '250px 1fr',
+        gap: '24px',
+    },
+    charTabs: {
+        display: 'flex',
+        flexDirection: 'column',
+        gap: '8px',
+    },
+    charTab: {
+        backgroundColor: '#242424',
+        color: '#f0f0f0',
+        padding: '12px',
+        borderRadius: '8px',
+        border: '1px solid #333',
+        cursor: 'pointer',
+        fontSize: '14px',
+        fontWeight: '500',
+        transition: 'background-color 0.2s',
+        '&:hover': {
+            backgroundColor: '#333',
+        },
+    },
+    activeCharTab: {
+        backgroundColor: '#E30016',
+        color: 'white',
+        padding: '12px',
+        borderRadius: '8px',
+        border: '1px solid #333',
+        cursor: 'pointer',
+        fontSize: '14px',
+        fontWeight: '500',
+    },
+    charContent: {
+        display: 'flex',
+        flexDirection: 'column',
+        gap: '16px',
+    },
+    charRow: {
+        display: 'flex',
+        justifyContent: 'space-between',
+        padding: '8px 0',
+        borderBottom: '1px solid #333',
+    },
+    charName: {
+        color: '#f0f0f0',
+        fontSize: '14px',
+        flex: 1,
+        display: 'flex',
+        alignItems: 'center',
+        gap: '8px',
+    },
+    infoIcon: {
+        color: '#E30016',
+        fontSize: '16px',
+    },
+    charValue: {
+        color: '#f0f0f0',
+        fontSize: '14px',
+        fontWeight: '500',
+        textAlign: 'right',
+        minWidth: '100px',
+    },
+    charCategoryTitle: {
+        fontSize: '18px',
+        fontWeight: 'bold',
+        color: '#E30016',
+        margin: '0 0 20px 0',
+        paddingTop: 0,
+        borderTop: 'none'
+    },
 };
 
 export default CarPage;

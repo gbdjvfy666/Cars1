@@ -126,7 +126,7 @@ const SearchPage = () => {
         <div style={styles.pageWrapper}> 
             <div style={styles.page}>
                 <Breadcrumbs items={breadcrumbItems} />
-                <h1 style={styles.pageTitle}>Поиск объявлений</h1>
+                <h1 style={styles.pageTitle}></h1>
                 <div style={styles.contentWrapper}>
                     
                     <div style={styles.sideFilterBar}>
@@ -187,7 +187,7 @@ pageWrapper: {
     contentWrapper: { display: 'flex', gap: '32px', alignItems: 'flex-start' },
     applyButton: { width: '100%', padding: '10px', marginTop: '10px', fontSize: '16px', fontWeight: 'bold', backgroundColor: '#E30016', color: '#fff', border: 'none', borderRadius: '8px', cursor: 'pointer', transition: 'background-color 0.2s' },
     // 💡 ИЗМЕНЕНИЕ 1: Уменьшаем ширину фильтра для освобождения места
-    sideFilterBar: { flex: '0 0 24rem', width: '24rem', position: 'sticky', top: '20px', padding: '0', backgroundColor: 'transparent', border: 'none' },     filterTitle: { fontSize: '16px', fontWeight: '600', color: '#f0f0f0', marginBottom: '10px', marginTop: '15px' },
+    sideFilterBar: { flex: '0 0 24rem', width: '24rem', position: 'sticky', top: '150px', padding: '0', backgroundColor: 'transparent', border: 'none' },     filterTitle: { fontSize: '16px', fontWeight: '600', color: '#f0f0f0', marginBottom: '10px', marginTop: '15px' },
     filterButtonInactive: { ...tabButton, backgroundColor: '#fff', borderRadius: '8px', padding: '8px 12px' },
     hr: { border: 'none', borderTop: '1px solid #333', margin: '20px 0' }, // Более темный разделитель
     priceInputsGroup: { display: 'flex', gap: '10px' },
