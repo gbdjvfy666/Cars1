@@ -18,12 +18,11 @@ import PlainWhiteNavbar from './other/PlainWhiteNavbar';
 function App() {
   return (
     <Router>
-      {/* 1. Навигационная панель всегда сверху */}
       <Navbar /> 
       <PlainWhiteNavbar />
-      {/* 2. Основной контейнер контента с отступом сверху (pt-16) 
-          для компенсации высоты фиксированного Navbar (h-16) */}
-      <div className="min-h-screen bg-gray-50" style={{ width: '100%' }}>
+      
+      {/* [ИЗМЕНЕНИЕ]: Добавляем overflowX: 'hidden' для надежности */}
+      <div className="min-h-screen bg-gray-50" style={{ width: '100%', overflowX: 'hidden' }}>
         <Routes>
           
           <Route path="/" element={<Home />} />

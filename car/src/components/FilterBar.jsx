@@ -193,6 +193,28 @@ const styles = {
         height: '42px', 
         outline: 'none',
     },
+    // 👇 НОВЫЕ СТИЛИ ДЛЯ ПЕРЕКЛЮЧАТЕЛЯ ВИДА
+    viewSwitcher: {
+        display: 'flex',
+        border: `1px solid ${COLORS.luminousBorder}`,
+        borderRadius: '0.5rem',
+        overflow: 'hidden',
+    },
+    viewButton: {
+        backgroundColor: COLORS.luminousInput,
+        color: COLORS.luminousMutedText,
+        border: 'none',
+        padding: '8px 12px',
+        cursor: 'pointer',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        transition: 'all 0.2s ease-in-out',
+    },
+    activeViewButton: {
+        backgroundColor: COLORS.primary,
+        color: COLORS.luminousText,
+    },
 };
 
 // ======================= ВНУТРЕННИЙ БАЗОВЫЙ КОМПОНЕНТ ФИЛЬТРОВ =======================
@@ -202,9 +224,11 @@ const BaseFilterBar = ({
     setFilters, 
     cars = [], 
     models = [], 
-    brandName 
+    brandName,
+    // 👇 НОВЫЕ ПРОПСЫ
+    viewMode,
+    onViewChange
 }) => {
-    // ... (ЛОГИКА ОСТАЕТСЯ ПРЕЖНЕЙ)
     const handleFilterChange = (e) => {
         const { name, value } = e.target;
         setFilters(prev => ({ ...prev, [name]: value }));
@@ -227,7 +251,6 @@ const BaseFilterBar = ({
     const uniqueValues = (key) => [...new Set(filteredCarsByType.map(car => car[key]).filter(Boolean))].sort();
     const engineTypes = uniqueValues('engine_type');
     const drivetrains = uniqueValues('drivetrain');
-    // ... (КОНЕЦ ЛОГИКИ)
 
     return (
         <div style={styles.filterBarContent}> 
@@ -243,58 +266,64 @@ const BaseFilterBar = ({
                         </button>
                     ))}
                 </div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
                     <select style={{...styles.select, minWidth: '180px'}}><option>Сортировать: по популярности</option></select>
+                    
+                    {/* 👇 НАЧАЛО НОВОГО БЛОКА: ПЕРЕКЛЮЧАТЕЛЬ ВИДА */}
+                    <div style={styles.viewSwitcher}>
+                        <button 
+                            onClick={() => onViewChange('grid')} 
+                            style={{ ...styles.viewButton, ...(viewMode === 'grid' ? styles.activeViewButton : {}) }}
+                            title="Сетка"
+                        >
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M4 11h6V5H4v6zm0 7h6v-6H4v6zm8-13v6h6V5h-6zm0 13h6v-6h-6v6z"></path></svg>
+                        </button>
+                        <button 
+                            onClick={() => onViewChange('list')} 
+                            style={{ ...styles.viewButton, ...(viewMode === 'list' ? styles.activeViewButton : {}) }}
+                            title="Список"
+                        >
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M4 15h16v-2H4v2zm0 4h16v-2H4v2zm0-8h16V9H4v2zm0-6v2h16V5H4z"></path></svg>
+                        </button>
+                    </div>
+                    {/* 👆 КОНЕЦ НОВОГО БЛОКА */}
+                    
                     <button onClick={handleReset} style={styles.resetButton}>Сбросить ✕</button>
                 </div>
             </div>
             <div style={styles.filterRowBottom}>
                 <div style={styles.filterInputGroup}>
-                    {/* Бренд - неактивен */}
                     <select disabled style={{...styles.select, backgroundColor: COLORS.luminousInput, color: COLORS.luminousText, fontWeight: '600'}}>
                         <option>{brandName}</option>
                     </select>
-                    
-                    {/* Модель */}
                     <select name="model" value={filters.model} onChange={handleFilterChange} style={styles.select}>
                         <option value="">Модель</option>
                         {models.map(m => <option key={m.slug} value={m.slug}>{m.name}</option>)}
                     </select>
-                    
-                    {/* Тип двигателя */}
                     <select name="engineType" value={filters.engineType} onChange={handleFilterChange} style={styles.select}>
                         <option value="">Тип двигателя</option>
                         {engineTypes.map(e => <option key={e} value={e}>{e}</option>)}
                     </select>
-                    
-                    {/* Год */}
                     <div style={styles.inputRangeContainer}>
                         <input name="yearFrom" type="number" value={filters.yearFrom} onChange={handleFilterChange} style={{...styles.inputRange, borderRight: 'none'}} placeholder="Год от" />
                         <input name="yearTo" type="number" value={filters.yearTo} onChange={handleFilterChange} style={styles.inputRange} placeholder="До" />
                     </div>
                 </div>
-                
                 <div style={styles.filterInputGroup}>
                     <select style={styles.select}><option>Тип кузова</option></select>
                     <select style={styles.select}><option>Коробка</option></select>
                     <select style={styles.select}><option>Опции</option></select>
-                    
-                    {/* Привод */}
                     <select name="drivetrain" value={filters.drivetrain} onChange={handleFilterChange} style={styles.select}>
                         <option value="">Привод</option>
                         {drivetrains.map(d => <option key={d} value={d}>{d}</option>)}
                     </select>
-                    
-                    {/* Пробег */}
                     <div style={styles.inputRangeContainer}>
                         <input name="mileageFrom" type="number" value={filters.mileageFrom} onChange={handleFilterChange} style={{...styles.inputRange, borderRight: 'none'}} placeholder="Пробег от, км" />
                         <input name="mileageTo" type="number" value={filters.mileageTo} onChange={handleFilterChange} style={styles.inputRange} placeholder="До" />
                     </div>
                 </div>
-                
                 <div style={styles.filterRowPriceAndButton}>
                     <div style={styles.inputRangeContainerPrice}>
-                             {/* Цена */}
                         <input name="priceFrom" type="number" value={filters.priceFrom} onChange={handleFilterChange} style={{...styles.inputRange, borderRight: 'none'}} placeholder="Цена от, ₽" />
                         <input name="priceTo" type="number" value={filters.priceTo} onChange={handleFilterChange} style={styles.inputRange} placeholder="До" />
                     </div>
@@ -308,10 +337,7 @@ const BaseFilterBar = ({
 };
 
 // ======================= ЭКСПОРТИРУЕМЫЙ КОМПОНЕНТ-ОБЕРТКА =======================
-// Он теперь называется FilterBar, чтобы соответствовать запросу пользователя.
-
 const FilterBar = (props) => {
-    // Эффект для встраивания стилей
     useEffect(() => {
         const styleElement = document.createElement('style');
         if (!document.getElementById('luminous-filterbar-styles')) {
@@ -321,13 +347,11 @@ const FilterBar = (props) => {
         }
     }, []);
 
-    // Оборачиваем BaseFilterBar в div с классом luminous-filter-bar
     return (
         <div className="luminous-filter-bar">
             <BaseFilterBar {...props} />
         </div>
     );
 };
-
 
 export default FilterBar;
