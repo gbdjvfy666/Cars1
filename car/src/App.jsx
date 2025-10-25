@@ -1,9 +1,12 @@
+// 📁 App.js (Финальный код)
+
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 
 import './index.css';
 import Navbar from './other/Navbar';
 import Footer from './other/Footer'; 
+import ScrollToTop from './other/ScrollToTop'; // 👈 1. ИМПОРТ НОВОГО КОМПОНЕНТА
 
 // Основные пользовательские страницы
 import Home from './pages/Home';
@@ -11,7 +14,7 @@ import BrandPage from './pages/BrandPage';
 import ModelPage from './pages/ModelPage';
 import CarPage from './pages/CarPage';
 import SearchPage from './pages/SearchPage';
-import AboutPage from './pages/AboutPage'; // 1. ИМПОРТИРУЕМ НОВУЮ СТРАНИЦУ "О НАС"
+import AboutPage from './pages/AboutPage'; 
 
 // Страницы админ-панели
 import AdminDashboardPage from './components/Admin/AdminDashboardPage'; 
@@ -21,6 +24,9 @@ import PlainWhiteNavbar from './other/PlainWhiteNavbar';
 function App() {
   return (
     <Router>
+      {/* 👈 2. КОМПОНЕНТ, КОТОРЫЙ ПЕРЕКРУЧИВАЕТ СТРАНИЦУ НАВЕРХ ПРИ НАВИГАЦИИ */}
+      <ScrollToTop /> 
+      
       <Navbar /> 
       <PlainWhiteNavbar />
       
@@ -29,7 +35,7 @@ function App() {
         <Routes>
           
           <Route path="/" element={<Home />} />
-          <Route path="/about" element={<AboutPage />} /> {/* 2. ДОБАВЛЯЕМ НОВЫЙ МАРШРУТ */}
+          <Route path="/about" element={<AboutPage />} /> 
           <Route path="/search" element={<SearchPage />} /> 
           <Route path="/cars/:brandSlug" element={<BrandPage />} />
           <Route path="/cars/:brandSlug/:modelSlug" element={<ModelPage />} />
