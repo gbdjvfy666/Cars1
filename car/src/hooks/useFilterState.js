@@ -1,37 +1,99 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useLocation } from 'react-router-dom';
 
-// Константы фильтров из SearchPage
+// Константы фильтров
 const API_BASE_URL = 'http://localhost:4000/api';
 
-// Функция для парсинга параметров из URL (перенесена из SearchPage)
+// ====================================================================
+// Вспомогательные функции для парсинга URL
+// ====================================================================
+
+/**
+ * Извлекает скалярный параметр из URLSearchParams.
+ * @param {URLSearchParams} params
+ * @param {string} key
+ * @returns {string | undefined}
+ */
+const getParam = (params, key) => {
+    const values = params.getAll(key);
+    if (values.length === 0) return undefined;
+    // Для всех скалярных параметров возвращаем первый элемент 
+    return values[0]; 
+};
+
+/**
+ * Парсит числовой параметр из URL, возвращая число или пустую строку.
+ * @param {URLSearchParams} params
+ * @param {string} key
+ * @returns {number | string}
+ */
+const getNumericParam = (params, key) => {
+    const val = getParam(params, key);
+    // Возвращаем пустую строку, если undefined/null/пустая строка, иначе число
+    const numberVal = val !== undefined && val !== null && val !== '' ? Number(val) : '';
+    // Дополнительная проверка на Infinity, если число слишком большое
+    return isFinite(numberVal) ? numberVal : '';
+};
+
+/**
+ * Парсит булевы параметры (чекбоксы) из URL.
+ * @param {URLSearchParams} params
+ * @param {string} key
+ * @returns {boolean}
+ */
+const getBooleanParam = (params, key) => {
+    return getParam(params, key) === 'true';
+};
+
+/**
+ * Функция для парсинга всех параметров из URL
+ * @param {string} search - строка location.search
+ * @returns {Object} initialFilters
+ */
 const parseQuery = (search) => {
     const params = new URLSearchParams(search);
-    const getParam = (key) => {
+
+    const getAllParam = (key) => {
         const values = params.getAll(key);
-        if (values.length === 0) return undefined;
-        // Для однозначных селектов возвращаем первый элемент (скаляр)
-        if (['origin', 'bodyType', 'engineType', 'drivetrain'].includes(key)) return values[0];
-        return values[0];
-    }
+        return values && values.length > 0 ? values : [];
+    };
+
     const initialFilters = {
-        condition: getParam('condition') || 'all',
-        // теперь скаляры (пустая строка по умолчанию)
-        origin: getParam('origin') || '',
-        bodyType: getParam('bodyType') || '',
-        engineType: getParam('engineType') || '',
-        drivetrain: getParam('drivetrain') || '',
-        // Устанавливаем пустые строки по умолчанию — чтобы инпут показывал плейсхолдер
-        priceFrom: getParam('priceFrom') !== undefined ? (getParam('priceFrom') === '' ? '' : Number(getParam('priceFrom'))) : '',
-        priceTo: getParam('priceTo') !== undefined ? (getParam('priceTo') === '' ? '' : Number(getParam('priceTo'))) : '',
-        searchTerm: getParam('searchTerm') || '',
+        // --- Основные фильтры (скалярные значения) ---
+        condition: getParam(params, 'condition') || 'all',
+        origin: getParam(params, 'origin') || '',
+        // brandSlug как массив (может быть несколько)
+        brandSlug: getAllParam('brandSlug'),
+        bodyType: getParam(params, 'bodyType') || '',
+        engineType: getParam(params, 'engineType') || '', // Исправлена опечатка sengineType -> engineType
+        drivetrain: getParam(params, 'drivetrain') || '',
+        searchTerm: getParam(params, 'searchTerm') || '',
+        
+        // Диапазоны цены
+        priceFrom: getNumericParam(params, 'priceFrom'),
+        priceTo: getNumericParam(params, 'priceTo'),
+
+        // --- Расширенные диапазоны (числа) ---
+        yearFrom: getNumericParam(params, 'yearFrom'),
+        yearTo: getNumericParam(params, 'yearTo'),
+        mileageFrom: getNumericParam(params, 'mileageFrom'),
+        mileageTo: getNumericParam(params, 'mileageTo'),
+        displacementFrom: getNumericParam(params, 'displacementFrom'),
+        displacementTo: getNumericParam(params, 'displacementTo'),
+        powerFrom: getNumericParam(params, 'powerFrom'),
+        powerTo: getNumericParam(params, 'powerTo'),
+
+        // --- Чекбоксы (булевы) ---
+        withDiscount: getBooleanParam(params, 'withDiscount'),
+        withGift: getBooleanParam(params, 'withGift'),
+        withPromo: getBooleanParam(params, 'withPromo'),
     };
     
     return initialFilters;
-}
+};
 
 // ====================================================================
-// НОВЫЙ ХУК useFilterState
+// ХУК useFilterState
 // ====================================================================
 
 export const useFilterState = (autocomplete) => {
@@ -49,47 +111,68 @@ export const useFilterState = (autocomplete) => {
 
     // Синхронизация searchTerm с autocomplete
     useEffect(() => {
-        // Проверяем, что autocomplete существует, прежде чем обращаться к его свойствам
         if (autocomplete) {
+            // Обновляем текущие фильтры при изменении ввода в SmartSearchInput
             setCurrentFilters(prev => ({ ...prev, searchTerm: autocomplete.inputValue }));
         }
-    }, [autocomplete ? autocomplete.inputValue : null]); // Зависимость с проверкой
+    }, [autocomplete ? autocomplete.inputValue : null]);
 
-    // Логика формирования строки запроса (перенесена из SearchPage)
+    // Логика формирования строки запроса
     const generateSearchQuery = useCallback((filters, currentPage) => {
         const params = new URLSearchParams();
         params.set('page', currentPage);
+        
+        /**
+         * Вспомогательная функция для добавления параметра. 
+         * Игнорирует: undefined, null, '', false.
+         */
         const append = (key, value) => {
-            if (value !== undefined && value !== null && value !== '' && (!Array.isArray(value) || value.length > 0)) {
-                if (Array.isArray(value)) {
-                    value.forEach(v => params.append(key, v));
+            // Игнорируем: undefined, null, пустую строку, а также boolean false
+            if (value !== undefined && value !== null && value !== '' && value !== false) {
+                    // Для булевых значений (true) передаем строку 'true'
+                const finalValue = typeof value === 'boolean' ? String(value) : value;
+                
+                if (Array.isArray(finalValue)) {
+                    finalValue.forEach(v => params.append(key, v));
                 } else {
-                    params.set(key, value);
+                    params.set(key, finalValue);
                 }
             }
         };
 
-        // Формирование параметров
+        // --- Основные фильтры ---
         append('searchTerm', filters.searchTerm);
         if (filters.condition && filters.condition !== 'all') { append('condition', filters.condition); }
-        // сейчас эти поля скалярные — ок
         append('origin', filters.origin);
         append('engineType', filters.engineType);
         append('bodyType', filters.bodyType);
         append('drivetrain', filters.drivetrain);
-        
-        // Отправляем priceFrom даже если 0 (и игнорируем пустую строку)
-        if (filters.priceFrom !== undefined && filters.priceFrom !== null && filters.priceFrom !== '' && !isNaN(Number(filters.priceFrom)) && Number(filters.priceFrom) >= 0) {
-            append('priceFrom', Number(filters.priceFrom));
-        }
-        if (filters.priceTo !== undefined && filters.priceTo !== null && filters.priceTo !== '' && !isNaN(Number(filters.priceTo)) && Number(filters.priceTo) < 30000000) {
-            append('priceTo', Number(filters.priceTo));
-        }
+        // Передаём brandSlug (массив) в query, если есть
+        append('brandSlug', filters.brandSlug);
 
+        // Диапазоны цены
+        append('priceFrom', filters.priceFrom);
+        append('priceTo', filters.priceTo);
+
+        // --- Расширенные диапазоны ---
+        append('yearFrom', filters.yearFrom);
+        append('yearTo', filters.yearTo);
+        append('mileageFrom', filters.mileageFrom);
+        append('mileageTo', filters.mileageTo);
+        append('displacementFrom', filters.displacementFrom);
+        append('displacementTo', filters.displacementTo);
+        append('powerFrom', filters.powerFrom);
+        append('powerTo', filters.powerTo);
+        
+        // --- Чекбоксы ---
+        append('withDiscount', filters.withDiscount);
+        append('withGift', filters.withGift);
+        append('withPromo', filters.withPromo);
+        
         return params.toString();
     }, []);
 
-    // Логика загрузки данных (перенесена из SearchPage)
+    // Логика загрузки данных
     const handleSearch = useCallback(async (filters, currentPage = 1) => {
         const isInitialLoad = currentPage === 1;
         if (isInitialLoad) setIsLoading(true); else setIsAppending(true);
@@ -118,31 +201,60 @@ export const useFilterState = (autocomplete) => {
 
     // Эффект для запуска поиска при изменении appliedFilters
     useEffect(() => {
+        // Мы запускаем поиск только при изменении appliedFilters, который меняется 
+        // при клике на "Показать" в фильтрах или при изменении URL.
         setPage(1);
         setDisplayedCars([]);
         handleSearch(appliedFilters, 1);
     }, [appliedFilters, handleSearch]);
     
+    // ====================================================================
     // Методы управления фильтрами
+    // ====================================================================
+
     const handleFilterChange = (key, value) => {
         setCurrentFilters(prev => ({ ...prev, [key]: value }));
     };
     
-    const handlePriceChange = (e) => { 
-        const raw = e.target.value.replace(/[^0-9]/g, ''); 
-        // позволяем временную пустую строку при удалении ввода, иначе число
-        setCurrentFilters(prev => ({ ...prev, [e.target.name]: raw === '' ? '' : Number(raw) })); 
-    };
+    /**
+     * Обрабатывает ввод числовых полей и чекбоксов.
+     */
+    const handlePriceChange = useCallback((e) => { 
+        const { name, value, type, checked } = e.target;
+        
+        if (type === 'checkbox') {
+            // Для чекбоксов используем булево значение
+            setCurrentFilters(prev => ({ ...prev, [name]: checked }));
+        } else {
+            // Для числовых полей: разрешаем цифры и точку
+            const raw = value.replace(/[^0-9.]/g, ''); 
+            
+            // 🐛 ИСПРАВЛЕНИЕ ОШИБКИ 500: Ограничиваем длину ввода
+            const isRangeField = name.includes('From') || name.includes('To');
+            // Устанавливаем разумные лимиты для предотвращения переполнения
+            const maxLength = (name.includes('mileage') || name.includes('price')) ? 15 : 6; 
+            const truncatedRaw = raw.slice(0, maxLength); 
+            
+            // Если поле пустое или содержит только точку, то пустая строка. Иначе - число.
+            const newValue = truncatedRaw === '' || truncatedRaw === '.' ? '' : Number(truncatedRaw);
+            
+            // Если Number вернул Infinity (слишком большое число), возвращаем пустую строку
+            const finalValue = isFinite(newValue) && newValue !== 0 ? newValue : (truncatedRaw === '' ? '' : truncatedRaw);
+
+            setCurrentFilters(prev => ({ ...prev, [name]: finalValue })); 
+        }
+    }, []);
 
     const handleApplyFilters = () => {
+        // Применяем текущее состояние фильтров к состоянию, которое триггерит поиск
         setAppliedFilters(currentFilters);
     };
     
     const handleResetFilters = () => {
-        const initial = parseQuery('');
+        const initial = parseQuery(''); // Получаем чистые начальные фильтры
         setCurrentFilters(initial);
         setAppliedFilters(initial);
-        // Сброс поля ввода поиска, если передан autocomplete
+        // Сброс поля ввода поиска
         if (autocomplete) {
             autocomplete.setInputValue(''); 
         }

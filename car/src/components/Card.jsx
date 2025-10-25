@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import Button from '../other/Button'; 
 import { useAutocomplete } from '../hooks/useAutocomplete'; 
 import { useFilterState } from '../hooks/useFilterState'; 
-import { SmartSearchInput } from '../components/SmartSearchInput';
+import { SmartSearchInput } from '../other/SmartSearchInput';
 
 // ====================================================================
 // КОНСТАНТЫ ДЛЯ ФИЛЬТРОВ

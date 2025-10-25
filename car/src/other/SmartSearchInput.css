@@ -1,0 +1,90 @@
+.search-container {
+    position: relative;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.search-input {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1px solid #d7d8dc;
+    border-radius: 8px;
+    font-size: 16px;
+    outline: none;
+    transition: border-color 0.2s;
+    box-sizing: border-box;
+}
+
+.search-input:focus {
+    border-color: #E30016;
+}
+
+.suggestions-dropdown {
+    position: absolute;
+    top: 105%;
+    left: 0;
+    right: 0;
+    background-color: #fff;
+    border: 1px solid #eee;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    list-style: none;
+    padding: 5px 0;
+    margin: 0;
+    z-index: 100;
+    max-height: 300px;
+    overflow-y: auto;
+}
+
+.suggestion-item {
+    padding: 10px 15px;
+    cursor: pointer;
+    font-size: 15px;
+    transition: background-color 0.2s;
+    color: #333; /* Темный цвет, как мы договорились */
+}
+
+.suggestion-item.info, .suggestion-item.error {
+    cursor: default;
+    color: #888;
+}
+.suggestion-item.error {
+    color: #e03131;
+}
+
+.suggestion-item:hover {
+    background-color: #fde6e8;
+}
+
+.suggestion-item.active {
+    background-color: #E30016;
+    color: #fff;
+}
+
+/* --- ДОБАВЛЕНО: Стили для ссылки на страницу бренда --- */
+.suggestion-item-brand {
+    font-weight: 700;
+    background-color: #fff8f8; /* Очень светлый, но заметный фон */
+    border-bottom: 1px solid #fde6e8;
+    color: #E30016; /* Акцентный цвет для текста */
+    padding: 12px 15px; /* Увеличенный отступ */
+    margin-bottom: 5px; /* Отделяем от моделей */
+}
+
+/* Убираем нижнюю границу и отступ у последнего элемента (чтобы не нарушать дизайн) */
+.suggestions-dropdown .suggestion-item:last-child {
+    margin-bottom: 0; 
+    border-bottom: none;
+}
+
+/* При наведении на ссылку бренда */
+.suggestion-item-brand:hover {
+    background-color: #fde6e8;
+    color: #E30016;
+}
+
+/* Активный (выбранный клавишами) элемент бренда */
+.suggestion-item.active.suggestion-item-brand {
+    background-color: #E30016;
+    color: #fff;
+}

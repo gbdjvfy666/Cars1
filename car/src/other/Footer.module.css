@@ -1,0 +1,158 @@
+/* ======================== */
+/* === ОСНОВНОЙ КОНТЕЙНЕР === */
+/* ======================== */
+.footer {
+    background-color: #141414; /* Очень темный, но не чисто черный */
+    color: #a0a0a0; /* Основной цвет текста - светло-серый */
+    padding: 80px 0 40px 0;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    border-top: 1px solid #2a2a2a; /* Тонкая линия для отделения от контента */
+}
+
+.container {
+    max-width: 1360px;
+    margin: 0 auto;
+    padding: 0 24px;
+}
+
+/* ======================== */
+/* === ВЕРХНЯЯ СЕТКА === */
+/* ======================== */
+.footerGrid {
+    display: grid;
+    /* Адаптивная сетка: колонки будут переноситься на маленьких экранах */
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 40px;
+    padding-bottom: 40px;
+    border-bottom: 1px solid #2a2a2a;
+}
+
+.footerColumn h4, .footerColumn h3 {
+    color: #e0e0e0; /* Заголовки делаем ярче */
+    margin-top: 0;
+    margin-bottom: 20px;
+}
+
+.logo {
+    font-size: 24px;
+    font-weight: 700;
+}
+
+.logoAccent {
+    color: #E30016; /* Фирменный красный цвет */
+}
+
+.mission {
+    font-size: 14px;
+    line-height: 1.6;
+    margin: 0;
+}
+
+.columnTitle {
+    font-size: 16px;
+    font-weight: 600;
+    text-transform: uppercase; /* Заголовки заглавными буквами */
+    letter-spacing: 0.5px;
+}
+
+.footerList {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.footerList a {
+    color: inherit; /* Наследуем цвет #a0a0a0 */
+    text-decoration: none;
+    font-size: 14px;
+    transition: color 0.2s ease-in-out;
+}
+
+.footerList a:hover {
+    color: #E30016; /* При наведении ссылка становится красной */
+}
+
+.address {
+    font-style: normal;
+}
+
+.address p {
+    margin: 0 0 12px 0;
+    font-size: 14px;
+    line-height: 1.6;
+}
+
+.address a {
+    color: #a0a0a0;
+    text-decoration: none;
+    transition: color 0.2s ease-in-out;
+}
+
+.address a:hover {
+    color: #E30016;
+}
+
+
+/* ======================== */
+/* === НИЖНЯЯ ЧАСТЬ === */
+/* ======================== */
+.footerBottom {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-top: 30px;
+    flex-wrap: wrap; /* Для адаптивности */
+    gap: 20px;
+}
+
+.copyright {
+    font-size: 13px;
+    color: #777;
+    margin: 0;
+}
+
+.socialIcons {
+    display: flex;
+    gap: 12px;
+}
+
+.socialIcons a {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%; /* Круглые иконки */
+    background-color: #2a2a2a;
+    color: #a0a0a0;
+    text-decoration: none;
+    font-size: 14px;
+    font-weight: 600;
+    transition: background-color 0.2s ease-in-out, color 0.2s ease-in-out;
+}
+
+.socialIcons a:hover {
+    background-color: #E30016;
+    color: #ffffff;
+}
+
+/* Адаптивность для мобильных устройств */
+@media (max-width: 768px) {
+    .footerGrid {
+        grid-template-columns: 1fr 1fr; /* По две колонки на планшетах */
+    }
+
+    .footerBottom {
+        flex-direction: column-reverse; /* Соц. иконки будут сверху копирайта */
+        text-align: center;
+    }
+}
+
+@media (max-width: 480px) {
+    .footerGrid {
+        grid-template-columns: 1fr; /* По одной колонке на телефонах */
+    }
+}

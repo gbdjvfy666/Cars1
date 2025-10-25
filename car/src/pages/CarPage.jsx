@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import Breadcrumbs from '../components/Breadcrumbs'; // 1. Импортируем компонент
+import Breadcrumbs from '../other/Breadcrumbs'; // 1. Импортируем компонент
 
 // ======================= ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ =======================
 

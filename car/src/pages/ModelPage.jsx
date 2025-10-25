@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import Breadcrumbs from '../components/Breadcrumbs';
+import Breadcrumbs from '../other/Breadcrumbs';
 import CarCard from '../components/CarCard'; 
 import FilterBar from '../components/FilterBar';
 

@@ -36,7 +36,10 @@ export const SmartSearchInput = ({
                         suggestions.map((suggestion, index) => (
                             <li
                                 key={suggestion.value + index}
-                                className={`suggestion-item ${index === activeIndex ? 'active' : ''}`}
+                                className={`suggestion-item 
+                                    ${index === activeIndex ? 'active' : ''}
+                                    ${suggestion.isBrandPage ? 'suggestion-item-brand' : ''} 
+                                `}
                                 onClick={() => handleSuggestionClick(suggestion)}
                             >
                                 {suggestion.label}

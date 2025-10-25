@@ -1,0 +1,52 @@
+.pageWrapper {
+    background-color: #131313;
+    color: #f0f0f0;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    padding: 60px 0;
+}
+
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 24px;
+}
+
+/* Общий стиль для всех секций */
+.heroSection, .missionSection, .valuesSection, .teamSection, .goalsSection, .ctaSection {
+    margin-bottom: 100px;
+}
+.heroSection { text-align: center; padding: 40px 0; }
+.mainTitle { font-size: 48px; font-weight: 800; margin: 0 0 16px 0; line-height: 1.2; }
+.titleAccent { color: #E30016; }
+.subtitle { font-size: 18px; color: #a0a0a0; max-width: 800px; /* Немного шире для нового текста */ margin: 0 auto; line-height: 1.7; }
+
+/* === НОВАЯ СЕКЦИЯ: МИССИЯ === */
+.missionSection { text-align: center; }
+.missionText { font-size: 18px; color: #c0c0c0; max-width: 800px; margin: 0 auto; line-height: 1.8; background-color: #1c1c1c; border-left: 3px solid #E30016; padding: 24px; text-align: left; border-radius: 0 8px 8px 0; }
+.sectionTitle { text-align: center; font-size: 36px; font-weight: 700; margin-bottom: 48px; color: #e0e0e0; }
+
+/* СЕКЦИЯ 3: ПРЕИМУЩЕСТВА (бывшие ценности) */
+.valuesGrid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 32px; }
+.valueCard { background-color: #1c1c1c; border: 1px solid #2a2a2a; border-radius: 12px; padding: 28px; transition: transform 0.2s ease-in-out, border-color 0.2s ease-in-out; display: flex; flex-direction: column; }
+.valueCard:hover { transform: translateY(-5px); border-color: #444; }
+.valueCard h3 { font-size: 20px; font-weight: 700; color: #e0e0e0; margin: 0 0 12px 0; }
+.valueCard p { font-size: 15px; color: #a0a0a0; line-height: 1.6; margin: 0; flex-grow: 1; } /* flex-grow для выравнивания высоты */
+
+/* СЕКЦИЯ 4: КОМАНДА (без изменений) */
+.teamGrid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 32px; }
+.teamMember { text-align: center; }
+.teamImage { width: 100%; max-width: 200px; height: auto; border-radius: 50%; margin: 0 auto 20px auto; border: 3px solid #2a2a2a; }
+.teamName { font-size: 20px; font-weight: 600; color: #e0e0e0; margin: 0 0 4px 0; }
+.teamTitle { font-size: 14px; color: #a0a0a0; margin: 0; }
+
+/* === НОВАЯ СЕКЦИЯ: ЦЕЛИ === */
+.goalsList { list-style: none; padding-left: 0; max-width: 800px; margin: 0 auto; display: flex; flex-direction: column; gap: 16px; }
+.goalsList li { background-color: #1c1c1c; padding: 16px 20px; border-radius: 8px; border-left: 3px solid #444; font-size: 16px; color: #b0b0b0; transition: border-color 0.2s; }
+.goalsList li:hover { border-color: #E30016; }
+
+/* СЕКЦИЯ 6: ПРИЗЫВ К ДЕЙСТВИЮ (без изменений) */
+.ctaSection { background-color: #1c1c1c; border: 1px solid #2a2a2a; border-radius: 16px; padding: 60px 40px; text-align: center; }
+.ctaTitle { font-size: 28px; font-weight: 700; margin: 0 0 12px 0; }
+.ctaSubtitle { font-size: 16px; color: #a0a0a0; margin: 0 0 32px 0; }
+.ctaButton { display: inline-block; background-color: #E30016; color: #ffffff; text-decoration: none; padding: 16px 48px; border-radius: 8px; font-size: 16px; font-weight: 700; text-transform: uppercase; transition: transform 0.2s ease, box-shadow 0.2s ease; box-shadow: 0 4px 20px rgba(227, 0, 22, 0.3); }
+.ctaButton:hover { transform: translateY(-2px); box-shadow: 0 6px 25px rgba(227, 0, 22, 0.4); }
